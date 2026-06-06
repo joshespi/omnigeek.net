@@ -10,18 +10,23 @@
             <x-input-error :messages="$errors->get('youtube')" class="mt-1" />
 
             @if ($categories->isNotEmpty())
-                <div class="flex flex-wrap gap-2 mt-3">
-                    @foreach ($categories as $category)
-                        <label class="cursor-pointer">
-                            <input type="checkbox" wire:model="selectedCategories" value="{{ $category->id }}" class="peer sr-only" />
-                            <span class="inline-block px-3 py-1 rounded-full text-sm border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 peer-checked:bg-brand-600 peer-checked:text-white peer-checked:border-brand-600">
-                                {{ $category->name }}
-                            </span>
-                        </label>
-                    @endforeach
+                <div class="mt-3">
+                    <x-checkbox-pills :items="$categories" model="selectedCategories" />
                 </div>
                 <x-input-error :messages="$errors->get('selectedCategories')" class="mt-1" />
             @endif
+
+            <input type="text" wire:model="tags" list="tag-hints" placeholder="Add tags, space-separated (e.g. rust homelab)"
+                class="w-full mt-3 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:border-brand-500 focus:ring-brand-500 text-sm" />
+            @if ($tagHints->isNotEmpty())
+                <datalist id="tag-hints">
+                    @foreach ($tagHints as $hint)
+                        <option value="{{ $hint }}"></option>
+                    @endforeach
+                </datalist>
+                <p class="mt-1 text-xs text-gray-400">Existing tags: {{ $tagHints->take(12)->implode(', ') }}{{ $tagHints->count() > 12 ? '…' : '' }}</p>
+            @endif
+            <x-input-error :messages="$errors->get('tags')" class="mt-1" />
 
             <div class="flex items-center justify-between mt-3">
                 <label class="text-sm text-gray-600 cursor-pointer">
@@ -40,15 +45,5 @@
         </div>
     @endauth
 
-    <div class="space-y-4">
-        @forelse ($posts as $post)
-            <div wire:key="post-{{ $post->id }}">
-                @include('partials.post-card', ['post' => $post])
-            </div>
-        @empty
-            <p class="text-center text-gray-500">No posts yet.</p>
-        @endforelse
-
-        <div class="mt-4">{{ $posts->links() }}</div>
-    </div>
+    <x-posts-feed :posts="$posts" />
 </div>

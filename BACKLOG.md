@@ -2,36 +2,15 @@
 
 Loosely ordered. Top = next up.
 
-## Tags (phases 2 & 3 of the tagging work)
+## Subscription delivery — more channels & cadences
 
-Categories (fixed, admin-curated) shipped. Tags are the freeform half.
+Email subscribe (instant, per-post) shipped. The `subscriptions` table already has `channel` and `frequency` columns as seams. Next:
 
-### Phase 2 — freeform hashtags
-
-- `tags` table (`id`, `name`, `slug`) + `post_tag` pivot.
-- Store tag text **lowercase** so `#Rust` and `#rust` collapse to one.
-- Composer: a text field where the poster types hashtags; parse on save, auto-create tags that don't exist, attach.
-- Autocomplete hints in the composer showing existing tags as the poster types, to cut down on near-duplicate forms of the same word.
-- Render `#tag` chips on post cards, each linking to that tag's feed.
-- Tags dropdown in the nav.
-- Tests + README.
-
-### Phase 3 — tag filter / browse page
-
-- `/tags` index: clickable tag cloud/list.
-- Filter view: pick one or more tags, see the matching feed.
-- Match logic: **ANY** — posts carrying at least one of the selected tags. Matching is by exact (lowercased) tag text.
-- Tests + README.
-
-## Email subscribe (new-post notifications)
-
-- Public form: visitor enters email to subscribe to new-post notifications.
-- **Double opt-in**: on submit, send a confirmation email with a verify link; only confirmed addresses receive notifications. Store a token + `confirmed_at`.
-- Subscriber chooses scope at signup: everything, or filtered by specific categories / geeks / tags. Lets each subscriber tune what lands in their inbox. Pairs with the existing category/geek/tag models — store the selected filters with the subscription.
-- Send a notification when a new post is published (queued, not inline with the request).
-- Unsubscribe link in every email (one-click, token-based).
-- Prereqs: a real mailer (currently `MAIL_MAILER=log`) and the queue running for sends.
-- Tests + README.
+- **Digest frequency**: weekly / monthly roundup instead of per-post. A scheduled command batches matching posts per subscriber and sends one email. (Add `last_notified_at` or similar.)
+- **Web push via installable PWA**: add a manifest + service worker so the app is installable, then push notifications through it as another `channel`.
+- **Discord channel**: post new entries to a Discord channel/webhook.
+- **Social platforms**: cross-post to social media on publish.
+- Prereq for real email delivery: a proper mailer (dev uses `MAIL_MAILER=log`) and a running queue worker.
 
 ## Deferred from earlier sessions
 
@@ -47,6 +26,9 @@ Categories (fixed, admin-curated) shipped. Tags are the freeform half.
 
 ## Done (recent)
 
+- Email subscribe: public `/subscribe`, double opt-in (token confirm/unsubscribe), scoped by categories/geeks/tags (JSON filters, match ANY), queued fan-out to confirmed subscribers on publish.
+- Dev `docker-compose.override.yml`: bind-mounts `./src` for live code + dev deps/tests, while the prod image stays lean (`--no-dev`, baked source).
+- Tags: freeform lowercase hashtags in the composer (autocomplete hints), `#tag` chips, `/tags/{slug}` feeds, and a `/tags` browse/filter page (match ANY, shareable URL).
 - Categories + admin panel (`is_admin` + `can:admin` gate, CRUD, composer pills, per-category feeds).
 - Geeks per-user profiles (`/geeks/{user}`, bio + avatar + their posts).
 - Root `.env` as deployment source of truth; app moved to port 8084.

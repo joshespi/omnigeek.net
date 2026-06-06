@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -18,9 +19,19 @@ class Post extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function scopeWithFeedRelations(Builder $query): Builder
+    {
+        return $query->with('user', 'categories', 'tags');
+    }
+
     public function categories(): BelongsToMany
     {
         return $this->belongsToMany(Category::class);
+    }
+
+    public function tags(): BelongsToMany
+    {
+        return $this->belongsToMany(Tag::class);
     }
 
     public static function parseYoutubeId(?string $url): ?string

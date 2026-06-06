@@ -3,28 +3,28 @@
 namespace App\Livewire;
 
 use App\Livewire\Concerns\HandlesPostDeletion;
-use App\Models\User;
+use App\Models\Tag;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-class GeekProfile extends Component
+class TagFeed extends Component
 {
     use HandlesPostDeletion;
     use WithPagination;
 
-    public User $user;
+    public Tag $tag;
 
-    public function mount(User $user): void
+    public function mount(Tag $tag): void
     {
-        $this->user = $user;
+        $this->tag = $tag;
     }
 
     #[Layout('layouts.app')]
     public function render()
     {
-        return view('livewire.geek-profile', [
-            'posts' => $this->user->posts()->withFeedRelations()->latest()->paginate(15),
+        return view('livewire.tag-feed', [
+            'posts' => $this->tag->posts()->withFeedRelations()->latest()->paginate(15),
         ]);
     }
 }

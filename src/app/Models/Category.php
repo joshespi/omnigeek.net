@@ -2,28 +2,18 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasSlug;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Support\Str;
 
 class Category extends Model
 {
-    protected $fillable = ['name', 'slug'];
+    use HasSlug;
 
-    protected static function booted(): void
-    {
-        static::saving(function (Category $category) {
-            $category->slug = Str::slug($category->name);
-        });
-    }
+    protected $fillable = ['name', 'slug'];
 
     public function posts(): BelongsToMany
     {
         return $this->belongsToMany(Post::class);
-    }
-
-    public function getRouteKeyName(): string
-    {
-        return 'slug';
     }
 }

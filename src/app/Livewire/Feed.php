@@ -2,9 +2,11 @@
 
 namespace App\Livewire;
 
+use App\Jobs\NotifySubscribersOfNewPost;
 use App\Livewire\Concerns\HandlesPostDeletion;
 use App\Models\Category;
 use App\Models\Post;
+use App\Models\Tag;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Validate;
@@ -29,6 +31,9 @@ class Feed extends Component
 
     #[Validate(['selectedCategories' => 'array', 'selectedCategories.*' => 'integer|exists:categories,id'])]
     public array $selectedCategories = [];
+
+    #[Validate('nullable|string|max:255')]
+    public string $tags = '';
 
     public function save(): void
     {
@@ -65,8 +70,11 @@ class Feed extends Component
         ]);
 
         $post->categories()->sync($this->selectedCategories);
+        $post->tags()->sync(Tag::fromText($this->tags)->pluck('id'));
 
-        $this->reset('body', 'youtube', 'media', 'selectedCategories');
+        NotifySubscribersOfNewPost::dispatch($post);
+
+        $this->reset('body', 'youtube', 'media', 'selectedCategories', 'tags');
         $this->resetPage();
     }
 
@@ -74,8 +82,9 @@ class Feed extends Component
     public function render()
     {
         return view('livewire.feed', [
-            'posts' => Post::with('user', 'categories')->latest()->paginate(15),
+            'posts' => Post::withFeedRelations()->latest()->paginate(15),
             'categories' => Category::orderBy('name')->get(),
+            'tagHints' => Tag::orderBy('name')->pluck('name'),
         ]);
     }
 }

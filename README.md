@@ -12,7 +12,9 @@ Chat / Discord-replacement is **not** in here yet — that's a planned phase 2 (
 - nginx, Vite for assets
 - Docker Compose
 
-The app code lives in `src/`. The Docker config (`Dockerfile`, `docker-compose.yml`, `nginx.conf`) lives at the repo root.
+The app code lives in `src/`. The Docker config (`Dockerfile`, `Dockerfile.nginx`, `docker-compose.yml`, `nginx.conf`) lives at the repo root.
+
+Code, composer deps, and built Vite assets are **baked into the images** at build time — the containers do not bind-mount `./src`. To pick up any code or asset change, rebuild: `docker compose up -d --build`. Only user uploads (`storage/app/public`) persist in a named volume, shared between the `app` and `nginx` containers.
 
 ## First-time setup
 
@@ -21,10 +23,8 @@ From the repo root:
 ```bash
 cp .env.example .env                       # deployment config — see below
 cp src/.env.example src/.env               # app defaults — usually no edits needed
-docker compose build
-docker compose run --rm app composer install
+docker compose build                       # bakes composer deps + built Vite assets into the images
 docker compose run --rm -u 1000 app php artisan key:generate   # writes APP_KEY into the root .env
-docker compose run --rm node sh -c "npm install && npm run build"
 docker compose up -d
 docker compose exec -u 1000 app php artisan migrate
 docker compose exec -u 1000 app php artisan storage:link
@@ -50,7 +50,7 @@ App runs at **http://localhost:8084**. (Host port is set in `docker-compose.yml`
 
 > **APP_URL gotcha:** `APP_URL` builds asset/media URLs (avatars, uploads). If you browse from a different machine, `localhost` points at the wrong host and images 404 — set it to the server's LAN IP or domain.
 
-> **uid note:** the `app` container's php-fpm pool runs as uid/gid `1000` (set in the `Dockerfile`) so files it writes stay editable on the host. Run artisan with `-u 1000` (e.g. `docker compose exec -u 1000 app php artisan ...`) so generated files aren't owned by root.
+> **uid note:** the `app` container's php-fpm pool runs as uid/gid `1000` (set in the `Dockerfile`) so files it writes into the `storage` volume stay editable on the host. Run artisan with `-u 1000` (e.g. `docker compose exec -u 1000 app php artisan ...`) so generated files aren't owned by root.
 
 ## Inviting people (it's invite-only)
 
@@ -96,6 +96,14 @@ A fixed, admin-curated set of categories (seeded with **Video Games, Reading, Mo
 - Each category has a feed at `/categories/{slug}` (slugs are auto-generated from the name).
 - Categories are seeded as default app data (`CategorySeeder`, run automatically by `db:seed`), separate from the demo content.
 
+## Tags
+
+Freeform hashtags, complementary to the fixed categories. When composing, a poster types space-separated tags (with or without a leading `#`) in the tags field. On save they're parsed, **lowercased**, slugged, and auto-created if new — so `#Rust`, `rust`, and `RUST` all collapse to one tag. The composer shows existing tags as autocomplete hints (and a short inline list) to discourage near-duplicate forms of the same word.
+
+- `#tag` chips show on each post card, linking to that tag's feed at `/tags/{slug}`.
+- **Tags** dropdown in the nav lists tags that have posts, plus a "Browse & filter tags" link.
+- `/tags` is a browse/filter page: click tags to filter the feed. Matching is **ANY** — a post shows if it carries at least one of the selected tags. The selection is reflected in the URL (`?tags[]=…`) so a filtered view is shareable.
+
 ## Admin
 
 Admins are users with `is_admin = true`. The first/primary user (the one from `DEMO_USER_EMAIL`) is flagged admin by `DemoPostsSeeder`. Admin-only routes live under `/admin`, protected by a `can:admin` gate; an **Admin** link appears in the user menu for admins only.
@@ -104,6 +112,18 @@ Admins are users with `is_admin = true`. The first/primary user (the one from `D
 - `/admin/categories` — create, rename, and delete categories.
 
 To make another user an admin, set the flag directly (e.g. `User::where('email', ...)->update(['is_admin' => true])`).
+
+## Email subscribe
+
+Visitors can subscribe to new-post notifications at `/subscribe` (linked in the nav). It's **double opt-in**: submitting the form creates an unconfirmed `subscriptions` row and sends a confirmation email; the address only receives notifications after clicking the confirm link. Every notification email carries a one-click unsubscribe link. Both confirm and unsubscribe are token-based (no login).
+
+Subscribers can scope what they hear about by picking any combination of **categories, geeks, and tags** on the form. Scope is stored as a JSON `filters` column; matching is **ANY** — a post is sent if it matches at least one selected filter. No filters means everything.
+
+When a post is published through the composer, a queued `NotifySubscribersOfNewPost` job fans out to confirmed subscribers whose filters match. Notifications use Laravel's on-demand mail channel, so they don't require subscriber user accounts.
+
+- Needs a working mailer to actually deliver. In local dev `MAIL_MAILER=log` writes emails (including the confirm link) to `storage/logs/laravel.log`.
+- Needs the queue running for sends: `docker compose exec -u 1000 app php artisan queue:work`.
+- The subscription carries `channel` (default `email`) and `frequency` (default `instant`) columns as seams for future delivery options (digests, web push, Discord) — only instant email is wired today.
 
 ## Dark mode
 
@@ -129,13 +149,26 @@ DEMO_USER_PASSWORD=password
 
 Set `DEMO_USER_EMAIL` to your own email to make yourself the first user. The extra geeks are hard-coded in `DemoPostsSeeder` with `@omnigeek.test` emails and password `password` — local demo accounts only, never real credentials.
 
+## Local dev vs. production image
+
+The `Dockerfile` builds a lean **production** image: it bakes `src/` in, installs `composer install --no-dev`, and compiles assets — no source mount, no dev tooling. That's what deploys to omnigeek.net.
+
+For local work, `docker-compose.override.yml` (auto-merged by Compose on every plain `docker compose` command) bind-mounts `./src` over the app's `/var/www/html`. So locally:
+
+- Code edits and `git pull` are **live** — no rebuild needed for PHP/Blade/route/JS-source changes.
+- The container uses the host's `src/vendor` (with dev deps), so `composer test` works.
+- Production has no override file, so it runs the baked image untouched. Same commands, both places.
+
+Rebuild the image (`docker compose build`) only when the `Dockerfile` or dependencies change. After a fresh clone, run `docker compose exec -u 1000 app composer install` once so `src/vendor` has the dev deps.
+
 ## Day-to-day
 
 ```bash
-docker compose up -d                                  # start
+docker compose up -d                                  # start (override gives live code locally)
 docker compose down                                   # stop
-docker compose run --rm node npm run dev              # asset watch during frontend work
 docker compose exec -u 1000 app composer test         # run tests
+docker compose exec -u 1000 app php artisan queue:work   # process queued jobs (subscription emails)
+docker run --rm -v "$PWD/src":/app -w /app node:24-alpine sh -c "npm install && npm run dev"   # asset watch during frontend work
 ```
 
 ## Tests
@@ -146,7 +179,7 @@ docker compose exec -u 1000 app composer test
 
 Use `composer test`, not `php artisan test` directly. The `test` script sets `APP_ENV=testing` so the in-memory SQLite config and Livewire's test macros load — without it, the container's OS `APP_ENV=local` (injected from the root `.env`) shadows the testing env and Livewire assertions like `assertSeeVolt` fail. Test-only overrides live in `src/.env.testing`.
 
-Covers invite gating (blocked without/with used invite, consumed on signup), post creation (text / YouTube parse / image upload), delete authorization, the YouTube URL parser, the demo seeder (multiple geeks, idempotency), and the geek profile pages (bio + own posts only, public reachability, delete authorization).
+Covers invite gating, post creation (text / YouTube parse / image upload), delete authorization, the YouTube URL parser, the demo seeder, geek profiles, categories + the admin panel (gated CRUD), tags (lowercase collapse, hashtag parsing, tag feeds, ANY-match filtering), and email subscribe (double opt-in confirm/unsubscribe, queued fan-out, filter matching, confirmed-only delivery).
 
 ## Roadmap
 

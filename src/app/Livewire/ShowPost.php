@@ -13,7 +13,7 @@ class ShowPost extends Component
 
     public function mount(Post $post): void
     {
-        $this->post = $post->load('user', 'categories');
+        $this->post = $post->load('user', 'categories', 'tags');
     }
 
     public function deletePost(Post $post): void

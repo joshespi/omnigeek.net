@@ -2,6 +2,7 @@
 
 use App\Livewire\Actions\Logout;
 use App\Models\Category;
+use App\Models\Tag;
 use App\Models\User;
 use Livewire\Attributes\Computed;
 use Livewire\Volt\Component;
@@ -29,6 +30,12 @@ new class extends Component
     {
         return Category::orderBy('name')->get(['slug', 'name']);
     }
+
+    #[Computed]
+    public function tags()
+    {
+        return Tag::has('posts')->orderBy('name')->get(['slug', 'name']);
+    }
 }; ?>
 
 <nav x-data="{ open: false }" class="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
@@ -49,76 +56,61 @@ new class extends Component
                         {{ __('Feed') }}
                     </x-nav-link>
 
-                    <div class="inline-flex items-center">
-                        <x-dropdown align="left" width="48" contentClasses="py-1 bg-white dark:bg-gray-700">
-                            <x-slot name="trigger">
-                                <button @class([
-                                    'inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium leading-5 transition duration-150 ease-in-out focus:outline-none',
-                                    'border-brand-400 text-gray-900 dark:text-gray-100' => request()->routeIs('geeks.*'),
-                                    'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200' => ! request()->routeIs('geeks.*'),
-                                ])>
-                                    {{ __('Geeks') }}
-                                    <svg class="ms-1 fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                    </svg>
-                                </button>
-                            </x-slot>
-
-                            <x-slot name="content">
-                                @forelse ($this->geeks as $geek)
-                                    <a href="{{ route('geeks.show', $geek) }}" wire:navigate
-                                        class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600">
-                                        @if ($geek->avatar_url)
-                                            <img src="{{ $geek->avatar_url }}" class="h-6 w-6 rounded-full object-cover" alt="" />
-                                        @else
-                                            <span class="h-6 w-6 rounded-full bg-brand-600 text-white text-xs flex items-center justify-center font-semibold">{{ $geek->initials() }}</span>
-                                        @endif
-                                        {{ $geek->name }}
-                                    </a>
-                                @empty
-                                    <span class="block px-4 py-2 text-sm text-gray-400">No geeks yet</span>
-                                @endforelse
-                            </x-slot>
-                        </x-dropdown>
-                    </div>
-
-                    <div class="inline-flex items-center">
-                        <x-dropdown align="left" width="48" contentClasses="py-1 bg-white dark:bg-gray-700">
-                            <x-slot name="trigger">
-                                <button @class([
-                                    'inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium leading-5 transition duration-150 ease-in-out focus:outline-none',
-                                    'border-brand-400 text-gray-900 dark:text-gray-100' => request()->routeIs('categories.*'),
-                                    'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200' => ! request()->routeIs('categories.*'),
-                                ])>
-                                    {{ __('Categories') }}
-                                    <svg class="ms-1 fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                    </svg>
-                                </button>
-                            </x-slot>
-
-                            <x-slot name="content">
-                                <a href="{{ route('categories.index') }}" wire:navigate
-                                    class="block px-4 py-2 text-sm font-medium text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-600">
-                                    All categories
+                    <x-nav-dropdown label="Geeks" routePrefix="geeks">
+                        <x-slot name="items">
+                            @forelse ($this->geeks as $geek)
+                                <a href="{{ route('geeks.show', $geek) }}" wire:navigate
+                                    class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600">
+                                    <x-avatar :user="$geek" size="sm" />
+                                    {{ $geek->name }}
                                 </a>
-                                <div class="border-t border-gray-100 dark:border-gray-600"></div>
-                                @forelse ($this->categories as $category)
-                                    <a href="{{ route('categories.show', $category->slug) }}" wire:navigate
-                                        class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600">
-                                        {{ $category->name }}
-                                    </a>
-                                @empty
-                                    <span class="block px-4 py-2 text-sm text-gray-400">No categories yet</span>
-                                @endforelse
-                            </x-slot>
-                        </x-dropdown>
-                    </div>
+                            @empty
+                                <span class="block px-4 py-2 text-sm text-gray-400">No geeks yet</span>
+                            @endforelse
+                        </x-slot>
+                    </x-nav-dropdown>
+
+                    <x-nav-dropdown label="Categories" routePrefix="categories">
+                        <a href="{{ route('categories.index') }}" wire:navigate
+                            class="block px-4 py-2 text-sm font-medium text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-600">
+                            All categories
+                        </a>
+                        <div class="border-t border-gray-100 dark:border-gray-600"></div>
+                        <x-slot name="items">
+                            @forelse ($this->categories as $category)
+                                <a href="{{ route('categories.show', $category->slug) }}" wire:navigate
+                                    class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600">
+                                    {{ $category->name }}
+                                </a>
+                            @empty
+                                <span class="block px-4 py-2 text-sm text-gray-400">No categories yet</span>
+                            @endforelse
+                        </x-slot>
+                    </x-nav-dropdown>
+
+                    <x-nav-dropdown label="Tags" routePrefix="tags">
+                        <a href="{{ route('tags.index') }}" wire:navigate
+                            class="block px-4 py-2 text-sm font-medium text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-600">
+                            Browse &amp; filter tags
+                        </a>
+                        <div class="border-t border-gray-100 dark:border-gray-600"></div>
+                        <x-slot name="items">
+                            @forelse ($this->tags as $tag)
+                                <a href="{{ route('tags.show', $tag->slug) }}" wire:navigate
+                                    class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600">
+                                    #{{ $tag->name }}
+                                </a>
+                            @empty
+                                <span class="block px-4 py-2 text-sm text-gray-400">No tags yet</span>
+                            @endforelse
+                        </x-slot>
+                    </x-nav-dropdown>
                 </div>
             </div>
 
             <!-- Settings Dropdown -->
             <div class="hidden sm:flex sm:items-center sm:ms-6 gap-3">
+                <a href="{{ route('subscribe') }}" wire:navigate class="text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">{{ __('Subscribe') }}</a>
                 <x-theme-toggle />
                 @guest
                     <a href="{{ route('login') }}" wire:navigate class="text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">{{ __('Log in') }}</a>
@@ -193,10 +185,25 @@ new class extends Component
                     {{ $category->name }}
                 </x-responsive-nav-link>
             @endforeach
+
+            <div class="px-4 pt-2 text-xs font-semibold uppercase tracking-wide text-gray-400">{{ __('Tags') }}</div>
+            <x-responsive-nav-link :href="route('tags.index')" :active="request()->routeIs('tags.index')" wire:navigate>
+                {{ __('Browse & filter tags') }}
+            </x-responsive-nav-link>
+            @foreach ($this->tags as $tag)
+                <x-responsive-nav-link :href="route('tags.show', $tag->slug)" wire:navigate>
+                    #{{ $tag->name }}
+                </x-responsive-nav-link>
+            @endforeach
         </div>
 
         <!-- Responsive Settings Options -->
         <div class="pt-4 pb-1 border-t border-gray-200 dark:border-gray-700">
+            <div class="mb-2">
+                <x-responsive-nav-link :href="route('subscribe')" :active="request()->routeIs('subscribe')" wire:navigate>
+                    {{ __('Subscribe') }}
+                </x-responsive-nav-link>
+            </div>
             <div class="px-4 pb-3">
                 <x-theme-toggle />
             </div>

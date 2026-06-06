@@ -24,7 +24,7 @@ class CategoryFeed extends Component
     public function render()
     {
         return view('livewire.category-feed', [
-            'posts' => $this->category->posts()->with('user', 'categories')->latest()->paginate(15),
+            'posts' => $this->category->posts()->withFeedRelations()->latest()->paginate(15),
         ]);
     }
 }

@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Tag;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -26,7 +27,7 @@ class DemoPostsSeeder extends Seeder
         );
 
         $this->seedPosts($primary, [
-            ['body' => 'Plain text post. No frills, just words.'],
+            ['body' => 'Plain text post. No frills, just words.', 'tags' => 'meta intro'],
             ['body' => 'Text plus an image below.', 'media_path' => $image, 'media_type' => 'image'],
             ['media_path' => $image, 'media_type' => 'image'],
             ['body' => 'Text plus a video.', 'media_path' => $video, 'media_type' => 'video'],
@@ -41,9 +42,9 @@ class DemoPostsSeeder extends Seeder
                 'email' => 'ada@omnigeek.test',
                 'bio' => 'Retro hardware tinkerer. I solder things that already worked fine.',
                 'posts' => [
-                    ['body' => 'Recapped a 1987 motherboard tonight. It boots. I weep.'],
-                    ['body' => 'CRT glow > OLED. Fight me.', 'media_path' => $image, 'media_type' => 'image'],
-                    ['body' => 'Speedrun of my favorite platformer.', 'youtube_id' => 'dQw4w9WgXcQ'],
+                    ['body' => 'Recapped a 1987 motherboard tonight. It boots. I weep.', 'tags' => 'retro hardware soldering'],
+                    ['body' => 'CRT glow > OLED. Fight me.', 'media_path' => $image, 'media_type' => 'image', 'tags' => 'retro'],
+                    ['body' => 'Speedrun of my favorite platformer.', 'youtube_id' => 'dQw4w9WgXcQ', 'tags' => 'gaming'],
                 ],
             ],
             [
@@ -51,9 +52,9 @@ class DemoPostsSeeder extends Seeder
                 'email' => 'rex@omnigeek.test',
                 'bio' => 'Self-hosting everything I can. The cloud is just someone else\'s computer.',
                 'posts' => [
-                    ['body' => 'Migrated off the last SaaS I was paying for. Freedom.'],
-                    ['body' => 'New rack day.', 'media_path' => $image, 'media_type' => 'image'],
-                    ['body' => 'Clip from my homelab tour.', 'media_path' => $video, 'media_type' => 'video'],
+                    ['body' => 'Migrated off the last SaaS I was paying for. Freedom.', 'tags' => 'selfhosting homelab'],
+                    ['body' => 'New rack day.', 'media_path' => $image, 'media_type' => 'image', 'tags' => 'homelab hardware'],
+                    ['body' => 'Clip from my homelab tour.', 'media_path' => $video, 'media_type' => 'video', 'tags' => 'homelab'],
                 ],
             ],
             [
@@ -61,9 +62,9 @@ class DemoPostsSeeder extends Seeder
                 'email' => 'mei@omnigeek.test',
                 'bio' => 'Indie game dev. Currently making a roguelike about a cat who runs a library.',
                 'posts' => [
-                    ['body' => 'Shipped a new build. Save bug finally squashed.'],
-                    ['body' => 'Concept art for the next boss.', 'media_path' => $image, 'media_type' => 'image'],
-                    ['body' => 'Devlog #12.', 'youtube_id' => 'dQw4w9WgXcQ'],
+                    ['body' => 'Shipped a new build. Save bug finally squashed.', 'tags' => 'gamedev'],
+                    ['body' => 'Concept art for the next boss.', 'media_path' => $image, 'media_type' => 'image', 'tags' => 'gamedev art'],
+                    ['body' => 'Devlog #12.', 'youtube_id' => 'dQw4w9WgXcQ', 'tags' => 'gamedev gaming'],
                 ],
             ],
             [
@@ -71,9 +72,9 @@ class DemoPostsSeeder extends Seeder
                 'email' => 'otto@omnigeek.test',
                 'bio' => 'Modular synth hoarder and Rust enjoyer. Yes, I rewrote it in Rust.',
                 'posts' => [
-                    ['body' => 'Patched a generative ambient drone. Slept like a baby.'],
-                    ['body' => 'New oscillator module.', 'media_path' => $image, 'media_type' => 'image'],
-                    ['body' => 'Jam session recording.', 'media_path' => $video, 'media_type' => 'video'],
+                    ['body' => 'Patched a generative ambient drone. Slept like a baby.', 'tags' => 'synth music'],
+                    ['body' => 'New oscillator module.', 'media_path' => $image, 'media_type' => 'image', 'tags' => 'synth hardware'],
+                    ['body' => 'Jam session recording.', 'media_path' => $video, 'media_type' => 'video', 'tags' => 'synth music rust'],
                 ],
             ],
         ];
@@ -100,7 +101,14 @@ class DemoPostsSeeder extends Seeder
         }
 
         foreach ($posts as $attrs) {
-            $user->posts()->create($attrs);
+            $tags = $attrs['tags'] ?? null;
+            unset($attrs['tags']);
+
+            $post = $user->posts()->create($attrs);
+
+            if ($tags) {
+                $post->tags()->sync(Tag::fromText($tags)->pluck('id'));
+            }
         }
     }
 

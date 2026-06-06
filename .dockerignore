@@ -1,3 +1,5 @@
+.git/
+db_data/
 src/vendor/
 src/node_modules/
 src/public/build/

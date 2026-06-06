@@ -8,3 +8,4 @@
 /src/public/uploads
 .DS_Store
 db_data/
+# src/storage/framework/testing/disks
