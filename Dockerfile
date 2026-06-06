@@ -3,7 +3,7 @@ WORKDIR /app
 COPY src/package.json src/package-lock.json ./
 RUN npm ci
 COPY src/ ./
-RUN npm run build
+RUN npm run build && test -f public/build/manifest.json || (echo "ERROR: Vite build produced no manifest.json" && exit 1)
 
 FROM composer:latest AS vendor
 WORKDIR /app
