@@ -35,6 +35,12 @@ class SiteMedia
     {
         $disk = Storage::disk('public');
 
-        return $disk->exists($path) ? $disk->url($path) : null;
+        if (! $disk->exists($path)) {
+            return null;
+        }
+
+        $bust = config('app.version').'-'.$disk->lastModified($path);
+
+        return $disk->url($path).'?v='.$bust;
     }
 }

@@ -19,6 +19,17 @@ class SiteMediaTest extends TestCase
         $this->assertNotNull(SiteMedia::logoUrl());
     }
 
+    public function test_url_carries_a_version_and_mtime_cache_bust_token(): void
+    {
+        config(['app.version' => '9.9.9']);
+        Storage::fake('public');
+        SiteMedia::store(SiteMedia::LOGO, UploadedFile::fake()->image('whatever.png'));
+
+        $mtime = Storage::disk('public')->lastModified(SiteMedia::LOGO);
+
+        $this->assertStringContainsString('?v=9.9.9-'.$mtime, SiteMedia::logoUrl());
+    }
+
     public function test_store_replaces_any_existing_file(): void
     {
         Storage::fake('public');

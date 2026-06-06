@@ -19,6 +19,13 @@ RUN apt-get update && apt-get install -y \
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
+# Upload ceilings must clear the app's largest rule (post media max:51200 = 50 MB). post_max_size wraps the whole multipart body so it sits above upload_max_filesize.
+RUN { \
+        echo 'upload_max_filesize = 64M'; \
+        echo 'post_max_size = 72M'; \
+        echo 'memory_limit = 256M'; \
+    } > /usr/local/etc/php/conf.d/uploads.ini
+
 # Run the fpm worker pool as host uid/gid so container-written files stay host-editable
 RUN sed -i 's/^user = www-data/user = 1000/; s/^group = www-data/group = 1000/' /usr/local/etc/php-fpm.d/www.conf
 
