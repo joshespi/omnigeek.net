@@ -5,6 +5,7 @@ namespace App\Enums;
 use Illuminate\Console\Scheduling\Event;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
+use Throwable;
 
 enum DigestCadence: string
 {
@@ -16,7 +17,13 @@ enum DigestCadence: string
 
     public static function current(): self
     {
-        return self::tryFrom(Cache::get(self::CACHE_KEY, '')) ?? self::Weekly;
+        try {
+            $value = Cache::get(self::CACHE_KEY, '');
+        } catch (Throwable) {
+            return self::Weekly;
+        }
+
+        return self::tryFrom($value) ?? self::Weekly;
     }
 
     public function store(): void
