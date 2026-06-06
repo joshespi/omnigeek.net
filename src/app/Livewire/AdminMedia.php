@@ -48,7 +48,7 @@ class AdminMedia extends Component
             return;
         }
 
-        SiteMedia::store(SiteMedia::LOGO, $this->logo);
+        SiteMedia::store(SiteMedia::LOGO, $this->logo, 512);
         $this->reset('logo');
         $this->dispatch('logo-saved');
     }
@@ -62,7 +62,7 @@ class AdminMedia extends Component
             return;
         }
 
-        SiteMedia::store(SiteMedia::OG_DEFAULT, $this->ogImage);
+        SiteMedia::store(SiteMedia::OG_DEFAULT, $this->ogImage, 1200);
         $this->reset('ogImage');
         $this->dispatch('og-saved');
     }

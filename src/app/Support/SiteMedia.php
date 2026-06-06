@@ -20,10 +20,10 @@ class SiteMedia
         return self::urlOrNull(self::OG_DEFAULT);
     }
 
-    public static function store(string $path, UploadedFile $file): void
+    public static function store(string $path, UploadedFile $file, int $maxWidth): void
     {
         Storage::disk('public')->delete($path);
-        $file->storeAs('', $path, 'public');
+        ImageProcessor::compressTo($file, $path, $maxWidth);
     }
 
     public static function delete(string $path): void

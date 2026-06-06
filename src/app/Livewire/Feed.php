@@ -7,6 +7,7 @@ use App\Livewire\Concerns\HandlesPostDeletion;
 use App\Models\Category;
 use App\Models\Post;
 use App\Models\Tag;
+use App\Support\ImageProcessor;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Validate;
@@ -61,8 +62,11 @@ class Feed extends Component
         $mediaPath = null;
         $mediaType = null;
         if ($this->media) {
-            $mediaPath = $this->media->store('uploads', 'public');
-            $mediaType = str_starts_with($this->media->getMimeType(), 'video/') ? 'video' : 'image';
+            $isVideo = str_starts_with($this->media->getMimeType(), 'video/');
+            $mediaType = $isVideo ? 'video' : 'image';
+            $mediaPath = $isVideo
+                ? $this->media->store('uploads', 'public')
+                : ImageProcessor::compress($this->media, 'uploads', 1600);
         }
 
         $post = auth()->user()->posts()->create([

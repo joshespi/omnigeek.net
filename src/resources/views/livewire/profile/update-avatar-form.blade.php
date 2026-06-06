@@ -1,5 +1,6 @@
 <?php
 
+use App\Support\ImageProcessor;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Volt\Component;
@@ -24,7 +25,7 @@ new class extends Component
         }
 
         $user->forceFill([
-            'avatar_path' => $this->avatar->store('avatars', 'public'),
+            'avatar_path' => ImageProcessor::compress($this->avatar, 'avatars', 512),
         ])->save();
 
         $this->reset('avatar');

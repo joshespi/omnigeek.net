@@ -84,6 +84,23 @@ class FeedTest extends TestCase
         Storage::disk('public')->assertExists($post->media_path);
     }
 
+    public function test_a_video_upload_is_stored_untouched(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create();
+
+        Livewire::actingAs($user)
+            ->test(Feed::class)
+            ->set('media', UploadedFile::fake()->create('clip.mp4', 100, 'video/mp4'))
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $post = Post::first();
+        $this->assertSame('video', $post->media_type);
+        $this->assertStringEndsWith('.mp4', $post->media_path);
+        Storage::disk('public')->assertExists($post->media_path);
+    }
+
     public function test_a_user_can_delete_their_own_post(): void
     {
         $user = User::factory()->create();
