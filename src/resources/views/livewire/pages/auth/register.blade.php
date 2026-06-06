@@ -23,29 +23,24 @@ new #[Layout('layouts.guest')] class extends Component
     {
         $this->token = (string) request()->query('invite', '');
 
-        if (($invite = $this->resolveInvite()) && $invite->email) {
-            $this->email = $invite->email;
+        if ($this->invite?->email) {
+            $this->email = $this->invite->email;
         }
-    }
-
-    public function resolveInvite(): ?Invite
-    {
-        return $this->token ? Invite::where('token', $this->token)->first() : null;
     }
 
     public function getInviteProperty(): ?Invite
     {
-        return $this->resolveInvite();
+        return once(fn () => $this->token ? Invite::where('token', $this->token)->first() : null);
     }
 
     public function getInviteValidProperty(): bool
     {
-        return $this->resolveInvite()?->isUsable() ?? false;
+        return $this->invite?->isUsable() ?? false;
     }
 
     public function register(): void
     {
-        $invite = $this->resolveInvite();
+        $invite = $this->invite;
 
         if (! $invite?->isUsable()) {
             throw ValidationException::withMessages(['token' => __('A valid invite is required to register.')]);
@@ -85,40 +80,27 @@ new #[Layout('layouts.guest')] class extends Component
         </div>
     @else
     <form wire:submit="register">
-        <!-- Name -->
         <div>
             <x-input-label for="name" :value="__('Name')" />
             <x-text-input wire:model="name" id="name" class="block mt-1 w-full" type="text" name="name" required autofocus autocomplete="name" />
             <x-input-error :messages="$errors->get('name')" class="mt-2" />
         </div>
 
-        <!-- Email Address -->
         <div class="mt-4">
             <x-input-label for="email" :value="__('Email')" />
             <x-text-input wire:model="email" id="email" class="block mt-1 w-full" type="email" name="email" required autocomplete="username" :readonly="(bool) $this->invite?->email" />
             <x-input-error :messages="$errors->get('email')" class="mt-2" />
         </div>
 
-        <!-- Password -->
         <div class="mt-4">
             <x-input-label for="password" :value="__('Password')" />
-
-            <x-text-input wire:model="password" id="password" class="block mt-1 w-full"
-                            type="password"
-                            name="password"
-                            required autocomplete="new-password" />
-
+            <x-text-input wire:model="password" id="password" class="block mt-1 w-full" type="password" name="password" required autocomplete="new-password" />
             <x-input-error :messages="$errors->get('password')" class="mt-2" />
         </div>
 
-        <!-- Confirm Password -->
         <div class="mt-4">
             <x-input-label for="password_confirmation" :value="__('Confirm Password')" />
-
-            <x-text-input wire:model="password_confirmation" id="password_confirmation" class="block mt-1 w-full"
-                            type="password"
-                            name="password_confirmation" required autocomplete="new-password" />
-
+            <x-text-input wire:model="password_confirmation" id="password_confirmation" class="block mt-1 w-full" type="password" name="password_confirmation" required autocomplete="new-password" />
             <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
         </div>
 

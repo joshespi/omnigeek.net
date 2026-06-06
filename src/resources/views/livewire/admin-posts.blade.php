@@ -15,6 +15,12 @@
                         </div>
 
                         <div>
+                            <x-input-label value="Title (optional)" />
+                            <x-text-input wire:model="editingTitle" type="text" class="mt-1 block w-full" placeholder="Post title" />
+                            <x-input-error :messages="$errors->get('editingTitle')" class="mt-1" />
+                        </div>
+
+                        <div>
                             <x-input-label value="Body" />
                             <textarea wire:model="editingBody"
                                 rows="4"

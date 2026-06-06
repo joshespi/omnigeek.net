@@ -4,14 +4,15 @@ namespace App\Notifications;
 
 use App\Models\Post;
 use App\Models\Subscription;
+use App\Notifications\Concerns\AppendsUnsubscribeFooter;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
-use Illuminate\Support\Str;
 
 class NewPostPublished extends Notification implements ShouldQueue
 {
+    use AppendsUnsubscribeFooter;
     use Queueable;
 
     public function __construct(public Post $post, public Subscription $subscription) {}
@@ -23,15 +24,13 @@ class NewPostPublished extends Notification implements ShouldQueue
 
     public function toMail(object $notifiable): MailMessage
     {
-        $preview = $this->post->body
-            ? Str::limit($this->post->body, 140)
-            : 'New post from '.$this->post->user->name;
+        $preview = $this->post->preview(140) ?? 'New post from '.$this->post->user->name;
 
-        return (new MailMessage)
+        $message = (new MailMessage)
             ->subject('New on '.config('app.name').': '.$this->post->user->name)
             ->line($preview)
-            ->action('Read it', route('posts.show', $this->post))
-            ->line('Stop these emails any time:')
-            ->line(route('subscriptions.unsubscribe', $this->subscription->token));
+            ->action('Read it', route('posts.show', $this->post));
+
+        return $this->appendUnsubscribeFooter($message);
     }
 }

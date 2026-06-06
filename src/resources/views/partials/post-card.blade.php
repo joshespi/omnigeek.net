@@ -1,4 +1,4 @@
-@props(['post'])
+@props(['post', 'full' => false])
 
 <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-4">
     <div class="flex items-center justify-between mb-2">
@@ -18,8 +18,18 @@
         @endif
     </div>
 
+    @if ($post->title)
+        <a href="{{ route('posts.show', $post) }}" wire:navigate
+            class="block font-semibold text-gray-900 dark:text-gray-100 hover:underline mb-1">{{ $post->title }}</a>
+    @endif
+
     @if ($post->body)
-        <p class="text-gray-800 dark:text-gray-200 whitespace-pre-wrap break-words mb-2">{{ $post->body }}</p>
+        @php $truncated = !$full && mb_strlen($post->body) > 250; @endphp
+        <p class="text-gray-800 dark:text-gray-200 whitespace-pre-wrap break-words mb-2">{{ $truncated ? mb_substr($post->body, 0, 250).'…' : $post->body }}</p>
+        @if ($truncated)
+            <a href="{{ route('posts.show', $post) }}" wire:navigate
+                class="text-xs text-brand-600 dark:text-brand-400 hover:underline">Read more</a>
+        @endif
     @endif
 
     @if ($post->media_path)

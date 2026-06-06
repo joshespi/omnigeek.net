@@ -12,3 +12,9 @@ services:
     volumes:
       - ./src:/var/www/html
       - storage:/var/www/html/storage/app/public
+  worker:
+    volumes:
+      - ./src:/var/www/html
+  scheduler:
+    volumes:
+      - ./src:/var/www/html

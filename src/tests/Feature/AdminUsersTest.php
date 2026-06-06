@@ -99,6 +99,28 @@ class AdminUsersTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_admin_can_delete_another_user(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $user = User::factory()->create();
+
+        Livewire::actingAs($admin)
+            ->test(AdminUsers::class)
+            ->call('deleteUser', $user);
+
+        $this->assertDatabaseMissing('users', ['id' => $user->id]);
+    }
+
+    public function test_admin_cannot_delete_themselves(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        Livewire::actingAs($admin)
+            ->test(AdminUsers::class)
+            ->call('deleteUser', $admin)
+            ->assertForbidden();
+    }
+
     public function test_non_admin_cannot_use_admin_users_component(): void
     {
         Livewire::actingAs(User::factory()->create())

@@ -12,7 +12,7 @@ class Post extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'body', 'media_path', 'media_type', 'youtube_id'];
+    protected $fillable = ['user_id', 'title', 'body', 'media_path', 'media_type', 'youtube_id'];
 
     public function user(): BelongsTo
     {
@@ -37,6 +37,11 @@ class Post extends Model
     public function canDelete(?User $user): bool
     {
         return $user && ($this->user_id === $user->id || $user->isAdmin());
+    }
+
+    public function preview(int $limit): ?string
+    {
+        return $this->title ?: ($this->body ? str($this->body)->limit($limit)->toString() : null);
     }
 
     public static function parseYoutubeId(?string $url): ?string

@@ -2,13 +2,15 @@
 
 namespace App\Livewire;
 
+use App\Enums\DigestCadence;
+use App\Enums\SubscriptionFrequency;
 use App\Models\Category;
 use App\Models\Subscription;
 use App\Models\Tag;
 use App\Models\User;
 use App\Notifications\ConfirmSubscription;
 use Illuminate\Support\Facades\Notification;
-use Livewire\Attributes\Layout;
+use Illuminate\Validation\Rules\Enum;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 
@@ -26,7 +28,24 @@ class Subscribe extends Component
     #[Validate('nullable|string|max:255')]
     public string $tags = '';
 
+    public string $frequency = SubscriptionFrequency::Instant->value;
+
+    public array $frequencyOptions = [];
+
     public bool $done = false;
+
+    public function mount(): void
+    {
+        $this->frequencyOptions = [
+            SubscriptionFrequency::Instant->value => SubscriptionFrequency::Instant->label(),
+            SubscriptionFrequency::Digest->value => SubscriptionFrequency::Digest->label().' — '.DigestCadence::current()->label(),
+        ];
+    }
+
+    protected function rules(): array
+    {
+        return ['frequency' => ['required', new Enum(SubscriptionFrequency::class)]];
+    }
 
     public function save(): void
     {
@@ -37,6 +56,7 @@ class Subscribe extends Component
         $subscription = Subscription::updateOrCreate(
             ['email' => $this->email],
             [
+                'frequency' => $this->frequency,
                 'filters' => array_filter([
                     'categories' => array_values($this->categories),
                     'geeks' => array_map('intval', $this->geeks),
@@ -53,12 +73,11 @@ class Subscribe extends Component
         $this->done = true;
     }
 
-    #[Layout('layouts.app')]
     public function render()
     {
         return view('livewire.subscribe', [
             'allCategories' => Category::orderBy('name')->get(),
             'allGeeks' => User::has('posts')->orderBy('name')->get(['id', 'name']),
-        ]);
+        ])->layout('layouts.app');
     }
 }

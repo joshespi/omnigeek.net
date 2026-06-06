@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('posts', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->string('title')->nullable();
             $table->text('body')->nullable();
             $table->string('media_path')->nullable();
             $table->string('media_type')->nullable();

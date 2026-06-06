@@ -78,6 +78,15 @@ class AdminUsers extends Component
         $this->reset('editingId', 'editingName', 'editingEmail', 'editingBio');
     }
 
+    public function deleteUser(User $user): void
+    {
+        $this->authorize('admin');
+
+        abort_if($user->id === auth()->id(), 403, 'Cannot delete your own account here.');
+
+        $user->delete();
+    }
+
     public function toggleAdmin(User $user): void
     {
         $this->authorize('admin');

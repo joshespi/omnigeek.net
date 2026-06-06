@@ -88,6 +88,9 @@
                                     class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
                                     {{ $user->is_admin ? 'Revoke admin' : 'Make admin' }}
                                 </button>
+                                <button wire:click="deleteUser({{ $user->id }})"
+                                    wire:confirm="Delete {{ $user->name }}? This removes their account and all their posts."
+                                    class="text-gray-400 hover:text-red-600">Delete</button>
                             @endif
                         </div>
                     </div>

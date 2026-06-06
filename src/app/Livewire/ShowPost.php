@@ -2,13 +2,15 @@
 
 namespace App\Livewire;
 
+use App\Livewire\Concerns\HandlesPostDeletion;
 use App\Models\Post;
 use Illuminate\Support\Facades\Storage;
-use Livewire\Attributes\Layout;
 use Livewire\Component;
 
 class ShowPost extends Component
 {
+    use HandlesPostDeletion;
+
     public Post $post;
 
     public function mount(Post $post): void
@@ -16,22 +18,26 @@ class ShowPost extends Component
         $this->post = $post->load('user', 'categories', 'tags');
     }
 
-    public function deletePost(Post $post): void
+    protected function afterDelete(): void
     {
-        abort_unless($post->canDelete(auth()->user()), 403);
-
-        if ($post->media_path) {
-            Storage::disk('public')->delete($post->media_path);
-        }
-
-        $post->delete();
-
         $this->redirect(route('home'), navigate: true);
     }
 
-    #[Layout('layouts.app')]
     public function render()
     {
-        return view('livewire.show-post');
+        $description = $this->post->body
+            ? str($this->post->body)->limit(160)->toString()
+            : 'A post by '.$this->post->user->name.' on '.config('app.name').'.';
+
+        $image = $this->post->media_type === 'image' && $this->post->media_path
+            ? Storage::disk('public')->url($this->post->media_path)
+            : null;
+
+        return view('livewire.show-post')->layout('layouts.app', [
+            'ogTitle'       => $this->post->user->name.' on '.config('app.name'),
+            'ogDescription' => $description,
+            'ogImage'       => $image,
+            'ogUrl'         => route('posts.show', $this->post),
+        ]);
     }
 }

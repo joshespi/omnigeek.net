@@ -4,6 +4,35 @@ services:
     env_file: .env
     volumes:
       - storage:/var/www/html/storage/app/public
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - laravel_net
+
+  worker:
+    build: .
+    env_file: .env
+    command: ["php", "artisan", "queue:work", "--sleep=3", "--tries=3", "--max-time=3600"]
+    user: "1000"
+    volumes:
+      - storage:/var/www/html/storage/app/public
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - laravel_net
+
+  scheduler:
+    build: .
+    env_file: .env
+    command: ["php", "artisan", "schedule:work"]
+    user: "1000"
+    volumes:
+      - storage:/var/www/html/storage/app/public
+    restart: always
     depends_on:
       db:
         condition: service_healthy
@@ -14,6 +43,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.nginx
+    restart: always
     ports:
       - "8084:80"
     volumes:

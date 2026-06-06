@@ -129,4 +129,41 @@ class FeedTest extends TestCase
 
         $this->assertDatabaseCount('posts', 0);
     }
+
+    public function test_a_post_can_have_an_optional_title(): void
+    {
+        $user = User::factory()->create();
+
+        Livewire::actingAs($user)
+            ->test(Feed::class)
+            ->set('title', 'My Review')
+            ->set('body', 'Great book.')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('posts', ['title' => 'My Review', 'body' => 'Great book.']);
+    }
+
+    public function test_body_accepts_up_to_10000_characters(): void
+    {
+        $user = User::factory()->create();
+        $longBody = str_repeat('a', 10000);
+
+        Livewire::actingAs($user)
+            ->test(Feed::class)
+            ->set('body', $longBody)
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('posts', ['body' => $longBody]);
+    }
+
+    public function test_body_over_10000_characters_is_rejected(): void
+    {
+        Livewire::actingAs(User::factory()->create())
+            ->test(Feed::class)
+            ->set('body', str_repeat('a', 10001))
+            ->call('save')
+            ->assertHasErrors('body');
+    }
 }

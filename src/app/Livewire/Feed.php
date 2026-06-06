@@ -20,7 +20,10 @@ class Feed extends Component
     use WithFileUploads;
     use WithPagination;
 
-    #[Validate('nullable|string|max:1000')]
+    #[Validate('nullable|string|max:255')]
+    public string $title = '';
+
+    #[Validate('nullable|string|max:10000')]
     public string $body = '';
 
     #[Validate('nullable|string|max:255')]
@@ -63,6 +66,7 @@ class Feed extends Component
         }
 
         $post = auth()->user()->posts()->create([
+            'title' => trim($this->title) ?: null,
             'body' => trim($this->body) ?: null,
             'media_path' => $mediaPath,
             'media_type' => $mediaType,
@@ -74,7 +78,7 @@ class Feed extends Component
 
         NotifySubscribersOfNewPost::dispatch($post);
 
-        $this->reset('body', 'youtube', 'media', 'selectedCategories', 'tags');
+        $this->reset('title', 'body', 'youtube', 'media', 'selectedCategories', 'tags');
         $this->resetPage();
     }
 

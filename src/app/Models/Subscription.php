@@ -2,19 +2,24 @@
 
 namespace App\Models;
 
+use App\Enums\SubscriptionFrequency;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
 class Subscription extends Model
 {
-    protected $fillable = ['email', 'token', 'confirmed_at', 'channel', 'frequency', 'filters'];
+    use HasFactory;
+    protected $fillable = ['email', 'token', 'confirmed_at', 'channel', 'frequency', 'filters', 'last_notified_at'];
 
     protected function casts(): array
     {
         return [
             'confirmed_at' => 'datetime',
+            'last_notified_at' => 'datetime',
             'filters' => 'array',
+            'frequency' => SubscriptionFrequency::class,
         ];
     }
 
@@ -28,6 +33,13 @@ class Subscription extends Model
     public function scopeConfirmed(Builder $query): Builder
     {
         return $query->whereNotNull('confirmed_at');
+    }
+
+    public function scopeForEmailDelivery(Builder $query, SubscriptionFrequency $frequency): Builder
+    {
+        return $query->confirmed()
+            ->where('channel', 'email')
+            ->where('frequency', $frequency->value);
     }
 
     public function isConfirmed(): bool

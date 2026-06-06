@@ -5,7 +5,36 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ config('app.name', 'Laravel') }}</title>
+        @php
+            $ogTitle       = $ogTitle       ?? config('app.name');
+            $ogDescription = $ogDescription ?? config('app.name').' — a small invite-only mini-blog for geeks.';
+            $ogImage       = $ogImage       ?? \App\Support\SiteMedia::ogDefaultUrl();
+            $ogUrl         = $ogUrl         ?? url()->current();
+        @endphp
+
+        <title>{{ $ogTitle === config('app.name') ? $ogTitle : $ogTitle.' — '.config('app.name') }}</title>
+
+        <meta name="description" content="{{ $ogDescription }}">
+
+        <!-- Open Graph -->
+        <meta property="og:site_name" content="{{ config('app.name') }}">
+        <meta property="og:title"       content="{{ $ogTitle }}">
+        <meta property="og:description" content="{{ $ogDescription }}">
+        <meta property="og:url"         content="{{ $ogUrl }}">
+        <meta property="og:type"        content="website">
+        @if ($ogImage)
+            <meta property="og:image" content="{{ $ogImage }}">
+            <meta property="og:image:width"  content="1200">
+            <meta property="og:image:height" content="630">
+        @endif
+
+        <!-- Twitter Card -->
+        <meta name="twitter:card"        content="{{ $ogImage ? 'summary_large_image' : 'summary' }}">
+        <meta name="twitter:title"       content="{{ $ogTitle }}">
+        <meta name="twitter:description" content="{{ $ogDescription }}">
+        @if ($ogImage)
+            <meta name="twitter:image" content="{{ $ogImage }}">
+        @endif
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">

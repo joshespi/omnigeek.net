@@ -15,6 +15,7 @@ class AdminPosts extends Component
     use HandlesPostDeletion, WithPagination;
 
     public ?int $editingId = null;
+    public string $editingTitle = '';
     public string $editingBody = '';
     public string $editingTags = '';
     public array $editingCategories = [];
@@ -25,6 +26,7 @@ class AdminPosts extends Component
 
         $post->load('categories', 'tags');
         $this->editingId = $post->id;
+        $this->editingTitle = $post->title ?? '';
         $this->editingBody = $post->body ?? '';
         $this->editingCategories = $post->categories->pluck('id')->toArray();
         $this->editingTags = $post->tags->pluck('name')->implode(' ');
@@ -37,13 +39,17 @@ class AdminPosts extends Component
         $post = Post::findOrFail($this->editingId);
 
         $this->validate([
-            'editingBody' => 'nullable|string|max:1000',
+            'editingTitle' => 'nullable|string|max:255',
+            'editingBody' => 'nullable|string|max:10000',
             'editingCategories' => 'array',
             'editingCategories.*' => 'integer|exists:categories,id',
             'editingTags' => 'nullable|string|max:255',
         ]);
 
-        $post->update(['body' => trim($this->editingBody) ?: null]);
+        $post->update([
+            'title' => trim($this->editingTitle) ?: null,
+            'body' => trim($this->editingBody) ?: null,
+        ]);
         $post->categories()->sync($this->editingCategories);
         $post->tags()->sync(Tag::fromText($this->editingTags)->pluck('id'));
 
@@ -52,7 +58,7 @@ class AdminPosts extends Component
 
     public function cancelEdit(): void
     {
-        $this->reset('editingId', 'editingBody', 'editingCategories', 'editingTags');
+        $this->reset('editingId', 'editingTitle', 'editingBody', 'editingCategories', 'editingTags');
     }
 
     #[Layout('layouts.app')]

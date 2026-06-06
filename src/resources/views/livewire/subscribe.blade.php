@@ -37,6 +37,20 @@
                 <x-text-input wire:model="tags" id="sub-tags" type="text" class="mt-1 block w-full" placeholder="rust homelab" />
             </div>
 
+            <div>
+                <x-input-label :value="__('Frequency')" />
+                <div class="mt-2 flex gap-4 text-sm">
+                    @foreach ($frequencyOptions as $value => $label)
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" wire:model="frequency" value="{{ $value }}"
+                                class="text-brand-600 focus:ring-brand-500" />
+                            <span class="text-gray-700 dark:text-gray-300">{{ $label }}</span>
+                        </label>
+                    @endforeach
+                </div>
+                <x-input-error :messages="$errors->get('frequency')" class="mt-1" />
+            </div>
+
             <x-primary-button>{{ __('Subscribe') }}</x-primary-button>
         </form>
     @endif

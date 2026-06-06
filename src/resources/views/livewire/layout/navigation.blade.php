@@ -34,7 +34,7 @@ new class extends Component
     #[Computed]
     public function tags()
     {
-        return Tag::has('posts')->orderBy('name')->get(['slug', 'name']);
+        return Tag::withCount('posts')->has('posts')->orderByDesc('posts_count')->limit(10)->get(['slug', 'name']);
     }
 }; ?>
 
@@ -45,8 +45,15 @@ new class extends Component
             <div class="flex">
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
-                    <a href="{{ route('home') }}" wire:navigate class="font-display text-xl font-bold tracking-tight text-brand-600 dark:text-brand-500">
-                        {{ config('app.name', 'OmniGeek') }}
+                    <a href="{{ route('home') }}" wire:navigate>
+                        @php $logoUrl = \App\Support\SiteMedia::logoUrl(); @endphp
+                        @if ($logoUrl)
+                            <img src="{{ $logoUrl }}" alt="{{ config('app.name') }}" class="h-8 object-contain" />
+                        @else
+                            <span class="font-display text-xl font-bold tracking-tight text-brand-600 dark:text-brand-500">
+                                {{ config('app.name', 'OmniGeek') }}
+                            </span>
+                        @endif
                     </a>
                 </div>
 
@@ -139,7 +146,6 @@ new class extends Component
                             </x-dropdown-link>
                         @endcan
 
-                        <!-- Authentication -->
                         <button wire:click="logout" class="w-full text-start">
                             <x-dropdown-link>
                                 {{ __('Log Out') }}

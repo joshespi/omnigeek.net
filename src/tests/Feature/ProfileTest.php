@@ -46,6 +46,22 @@ class ProfileTest extends TestCase
         $this->assertNull($user->email_verified_at);
     }
 
+    public function test_user_can_update_their_bio(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user);
+
+        Volt::test('profile.update-profile-information-form')
+            ->set('name', $user->name)
+            ->set('email', $user->email)
+            ->set('bio', 'Lover of cats and Rust.')
+            ->call('updateProfileInformation')
+            ->assertHasNoErrors();
+
+        $this->assertSame('Lover of cats and Rust.', $user->fresh()->bio);
+    }
+
     public function test_email_verification_status_is_unchanged_when_the_email_address_is_unchanged(): void
     {
         $user = User::factory()->create();

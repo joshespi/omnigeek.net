@@ -4,7 +4,6 @@ namespace App\Livewire;
 
 use App\Livewire\Concerns\HandlesPostDeletion;
 use App\Models\User;
-use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -20,11 +19,19 @@ class GeekProfile extends Component
         $this->user = $user;
     }
 
-    #[Layout('layouts.app')]
     public function render()
     {
+        $description = $this->user->bio
+            ? str($this->user->bio)->limit(160)->toString()
+            : $this->user->name.' on '.config('app.name').'.';
+
         return view('livewire.geek-profile', [
             'posts' => $this->user->posts()->withFeedRelations()->latest()->paginate(15),
+        ])->layout('layouts.app', [
+            'ogTitle'       => $this->user->name,
+            'ogDescription' => $description,
+            'ogImage'       => $this->user->avatar_url,
+            'ogUrl'         => route('geeks.show', $this->user),
         ]);
     }
 }

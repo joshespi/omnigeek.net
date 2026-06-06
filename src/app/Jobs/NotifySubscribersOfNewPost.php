@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Enums\SubscriptionFrequency;
 use App\Models\Post;
 use App\Models\Subscription;
 use App\Notifications\NewPostPublished;
@@ -19,9 +20,7 @@ class NotifySubscribersOfNewPost implements ShouldQueue
     {
         $this->post->loadMissing('user', 'categories', 'tags');
 
-        Subscription::confirmed()
-            ->where('frequency', 'instant')
-            ->where('channel', 'email')
+        Subscription::forEmailDelivery(SubscriptionFrequency::Instant)
             ->cursor()
             ->filter(fn (Subscription $sub) => $sub->wantsPost($this->post))
             ->each(function (Subscription $sub) {

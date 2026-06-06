@@ -16,5 +16,9 @@ trait HandlesPostDeletion
         }
 
         $post->delete();
+
+        $this->afterDelete();
     }
+
+    protected function afterDelete(): void {}
 }

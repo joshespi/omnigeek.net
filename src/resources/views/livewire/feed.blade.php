@@ -1,7 +1,11 @@
 <div class="max-w-3xl mx-auto px-4 py-8">
     @auth
         <form wire:submit="save" class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-4 mb-6">
-            <textarea wire:model="body" rows="3" placeholder="What's happening?"
+            <input type="text" wire:model="title" placeholder="Title (optional)"
+                class="w-full mb-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:border-brand-500 focus:ring-brand-500 text-sm font-medium" />
+            <x-input-error :messages="$errors->get('title')" class="mt-1" />
+
+            <textarea wire:model="body" rows="3" placeholder="What's on your mind?"
                 class="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:border-brand-500 focus:ring-brand-500 resize-none"></textarea>
             <x-input-error :messages="$errors->get('body')" class="mt-1" />
 
