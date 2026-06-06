@@ -1,12 +1,25 @@
 <?php
 
-// The app container runs with APP_ENV=local injected as an OS env var (root .env via
-// docker-compose). Laravel resolves its environment from that OS value at bootstrap,
-// before PHPUnit's <env> overrides apply, so tests would otherwise run as "local" and
-// Livewire's test macros (assertSeeVolt etc.) never register. Force testing here, in all
-// three stores, before the framework boots.
-putenv('APP_ENV=testing');
-$_ENV['APP_ENV'] = 'testing';
-$_SERVER['APP_ENV'] = 'testing';
+// The app container runs with APP_ENV=local + mysql DB creds injected as OS env vars
+// (root .env via docker-compose). Laravel's Env::get() reads $_SERVER first, before
+// PHPUnit's <env> overrides apply — and those overrides only touch $_ENV/putenv, never
+// $_SERVER. So without this, tests boot as "local" against the live MariaDB and
+// RefreshDatabase truncates the real database. Force testing values in all three stores.
+$testEnv = [
+    'APP_ENV' => 'testing',
+    'DB_CONNECTION' => 'sqlite',
+    'DB_DATABASE' => ':memory:',
+    'DB_HOST' => '',
+    'DB_PORT' => '',
+    'DB_USERNAME' => '',
+    'DB_PASSWORD' => '',
+    'DB_URL' => '',
+];
+
+foreach ($testEnv as $key => $value) {
+    $_ENV[$key] = $value;
+    $_SERVER[$key] = $value;
+    putenv("$key=$value");
+}
 
 require __DIR__.'/../vendor/autoload.php';

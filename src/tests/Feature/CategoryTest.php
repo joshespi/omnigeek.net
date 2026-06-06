@@ -6,6 +6,7 @@ use App\Livewire\CategoryFeed;
 use App\Livewire\Feed;
 use App\Models\Category;
 use App\Models\User;
+use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -13,6 +14,14 @@ use Tests\TestCase;
 class CategoryTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_database_seeder_creates_categories_with_slugs(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+
+        $this->assertDatabaseHas('categories', ['name' => 'Video Games', 'slug' => 'video-games']);
+        $this->assertSame(0, Category::whereNull('slug')->count());
+    }
 
     public function test_a_poster_can_attach_categories_to_a_post(): void
     {

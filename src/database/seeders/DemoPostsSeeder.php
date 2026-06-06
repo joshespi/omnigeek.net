@@ -15,16 +15,8 @@ class DemoPostsSeeder extends Seeder
         $image = $this->copyAsset('demo-image.png');
         $video = $this->copyAsset('demo-video.mp4');
 
-        $primary = User::firstOrCreate(
-            ['email' => config('demo.user.email')],
-            [
-                'name' => config('demo.user.name'),
-                'bio' => 'Resident omnigeek. Builder of small useful things.',
-                'is_admin' => true,
-                'password' => Hash::make(config('demo.user.password')),
-                'email_verified_at' => now(),
-            ],
-        );
+        // The initial admin user is created by InitialUserSeeder; attach demo posts to it.
+        $primary = (new InitialUserSeeder)->run();
 
         $this->seedPosts($primary, [
             ['body' => 'Plain text post. No frills, just words.', 'tags' => 'meta intro'],

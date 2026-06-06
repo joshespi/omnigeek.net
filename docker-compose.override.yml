@@ -6,3 +6,9 @@ services:
   app:
     volumes:
       - ./src:/var/www/html
+  # nginx serves static files itself; without the same mount it keeps serving the
+  # image's baked assets while PHP reads the host's Vite manifest — hash mismatch, 404s, no CSS.
+  nginx:
+    volumes:
+      - ./src:/var/www/html
+      - storage:/var/www/html/storage/app/public
