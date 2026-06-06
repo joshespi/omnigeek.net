@@ -9,7 +9,7 @@ trait HandlesPostDeletion
 {
     public function deletePost(Post $post): void
     {
-        abort_unless($post->user_id === auth()->id(), 403);
+        abort_unless($post->canDelete(auth()->user()), 403);
 
         if ($post->media_path) {
             Storage::disk('public')->delete($post->media_path);

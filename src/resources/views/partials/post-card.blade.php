@@ -11,7 +11,7 @@
                     class="text-gray-400 text-sm hover:underline">· {{ $post->created_at->diffForHumans() }}</a>
             </div>
         </div>
-        @if ($post->user_id === auth()->id())
+        @if ($post->canDelete(auth()->user()))
             <button wire:click="deletePost({{ $post->id }})"
                 wire:confirm="Delete this post?"
                 class="text-gray-400 hover:text-red-600 text-sm">Delete</button>

@@ -1,6 +1,8 @@
 <?php
 
 use App\Livewire\AdminCategories;
+use App\Livewire\AdminPosts;
+use App\Livewire\AdminUsers;
 use App\Livewire\CategoryFeed;
 use App\Livewire\Feed;
 use App\Livewire\GeekProfile;
@@ -40,6 +42,8 @@ Route::get('subscribe/unsubscribe/{token}', function (string $token) {
 Route::middleware(['auth', 'can:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::view('/', 'admin.home')->name('home');
     Route::get('categories', AdminCategories::class)->name('categories');
+    Route::get('posts', AdminPosts::class)->name('posts');
+    Route::get('users', AdminUsers::class)->name('users');
 });
 
 Route::get('dashboard', Feed::class)

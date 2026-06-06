@@ -34,6 +34,11 @@ class Post extends Model
         return $this->belongsToMany(Tag::class);
     }
 
+    public function canDelete(?User $user): bool
+    {
+        return $user && ($this->user_id === $user->id || $user->isAdmin());
+    }
+
     public static function parseYoutubeId(?string $url): ?string
     {
         if (! $url) {

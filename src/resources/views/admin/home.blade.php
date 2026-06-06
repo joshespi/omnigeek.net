@@ -8,6 +8,16 @@
                 <div class="font-medium text-gray-900 dark:text-gray-100">Categories</div>
                 <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Manage the fixed category list posters choose from.</p>
             </a>
+            <a href="{{ route('admin.posts') }}" wire:navigate
+                class="block bg-white dark:bg-gray-800 shadow-sm rounded-lg p-5 hover:shadow transition">
+                <div class="font-medium text-gray-900 dark:text-gray-100">Posts</div>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Edit or delete any post on the site.</p>
+            </a>
+            <a href="{{ route('admin.users') }}" wire:navigate
+                class="block bg-white dark:bg-gray-800 shadow-sm rounded-lg p-5 hover:shadow transition">
+                <div class="font-medium text-gray-900 dark:text-gray-100">Users</div>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Manage accounts, send invite links, toggle admin.</p>
+            </a>
         </div>
     </div>
 </x-app-layout>
