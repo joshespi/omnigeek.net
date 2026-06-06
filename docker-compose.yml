@@ -27,7 +27,7 @@ services:
     restart: always
     env_file: .env
     environment:
-      MARIADB_DATABASE: laravel
+      MARIADB_DATABASE: ${DB_DATABASE}
       MARIADB_USER: ${DB_USERNAME}
       MARIADB_PASSWORD: ${DB_PASSWORD}
       MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}

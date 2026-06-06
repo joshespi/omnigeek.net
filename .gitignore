@@ -7,3 +7,4 @@
 /src/public/storage
 /src/public/uploads
 .DS_Store
+db_data/
