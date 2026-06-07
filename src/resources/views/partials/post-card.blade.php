@@ -25,7 +25,7 @@
 
     @if ($post->body)
         @php $long = !$full && mb_strlen($post->body) > 250; @endphp
-        <div class="mb-2 {{ $long ? 'line-clamp-4' : '' }}">
+        <div class="mb-2 {{ $long ? 'line-clamp-4 overflow-hidden' : '' }}">
             <x-markdown :text="$post->body" />
         </div>
         @if ($long)
@@ -34,16 +34,7 @@
         @endif
     @endif
 
-    @if ($post->media_path)
-        @if ($post->media_type === 'video')
-            <video controls class="rounded-md w-full max-h-96 bg-black">
-                <source src="{{ Storage::disk('public')->url($post->media_path) }}">
-            </video>
-        @else
-            <img src="{{ Storage::disk('public')->url($post->media_path) }}"
-                class="rounded-md w-full" alt="" />
-        @endif
-    @endif
+    <livewire:post-media-editor :post="$post" :key="'media-'.$post->id" />
 
     @if ($post->youtube_id)
         <div class="aspect-video mt-2">
