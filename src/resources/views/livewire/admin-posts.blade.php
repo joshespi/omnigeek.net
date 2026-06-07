@@ -21,10 +21,8 @@
                         </div>
 
                         <div>
-                            <x-input-label value="Body" />
-                            <textarea wire:model="form.body"
-                                rows="4"
-                                class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 shadow-sm focus:border-brand-500 focus:ring-brand-500 text-sm"></textarea>
+                            <x-input-label value="Body" class="mb-1" />
+                            <x-markdown-editor model="form.body" :body="$form->body" :show-preview="$showPreview" :rows="10" />
                             <x-input-error :messages="$errors->get('form.body')" class="mt-1" />
                         </div>
 
@@ -63,6 +61,10 @@
                                 <a href="{{ route('posts.show', $post) }}" wire:navigate class="hover:underline">{{ $post->created_at->diffForHumans() }}</a>
                             </div>
 
+                            @if ($post->title)
+                                <p class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-0.5">{{ $post->title }}</p>
+                            @endif
+
                             @if ($post->body)
                                 <p class="text-sm text-gray-800 dark:text-gray-200 line-clamp-2 mb-1">{{ $post->body }}</p>
                             @endif
@@ -86,6 +88,9 @@
                         </div>
 
                         <div class="flex items-center gap-3 text-sm shrink-0">
+                            @if ($post->view_count > 0)
+                                <span class="text-xs text-gray-400">{{ number_format($post->view_count) }} views</span>
+                            @endif
                             <button wire:click="edit({{ $post->id }})"
                                 class="text-brand-600 dark:text-brand-400 hover:underline">Edit</button>
                             <button wire:click="deletePost({{ $post->id }})"

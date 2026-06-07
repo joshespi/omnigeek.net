@@ -14,6 +14,8 @@ class Post extends Model
 
     protected $fillable = ['user_id', 'title', 'body', 'media_path', 'media_type', 'youtube_id'];
 
+    protected $casts = ['view_count' => 'integer'];
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

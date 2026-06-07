@@ -20,7 +20,7 @@
 
     @if ($post->title)
         <a href="{{ route('posts.show', $post) }}" wire:navigate
-            class="block font-semibold text-gray-900 dark:text-gray-100 hover:underline mb-1">{{ $post->title }}</a>
+            class="block text-lg font-semibold text-gray-900 dark:text-gray-100 hover:underline mb-1">{{ $post->title }}</a>
     @endif
 
     @if ($post->body)
@@ -34,7 +34,7 @@
         @endif
     @endif
 
-    <livewire:post-media-editor :post="$post" :key="'media-'.$post->id" />
+    <livewire:post-media-editor :post="$post" :edit-context="$full" :key="'media-'.$post->id" />
     <livewire:post-editor :post="$post" :key="'editor-'.$post->id" />
 
     @if ($post->youtube_id)
@@ -65,5 +65,9 @@
                     class="text-xs text-brand-600 dark:text-brand-400 hover:underline">#{{ $tag->name }}</a>
             @endforeach
         </div>
+    @endif
+
+    @if ($full && $post->view_count > 0)
+        <div class="mt-3 text-xs text-gray-400 dark:text-gray-500">{{ number_format($post->view_count) }} {{ Str::plural('view', $post->view_count) }}</div>
     @endif
 </div>

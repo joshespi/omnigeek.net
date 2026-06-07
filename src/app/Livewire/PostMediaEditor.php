@@ -14,6 +14,8 @@ class PostMediaEditor extends Component
 
     public Post $post;
 
+    public bool $editContext = false;
+
     public bool $editing = false;
 
     #[Validate('required|file|max:51200|mimes:jpg,jpeg,png,gif,webp,mp4,webm,mov')]
@@ -21,7 +23,7 @@ class PostMediaEditor extends Component
 
     public function replaceMedia(): void
     {
-        abort_unless($this->post->canDelete(auth()->user()), 403);
+        abort_unless($this->post->canEdit(auth()->user()), 403);
 
         $this->validate();
 
@@ -36,7 +38,7 @@ class PostMediaEditor extends Component
 
     public function removeMedia(): void
     {
-        abort_unless($this->post->canDelete(auth()->user()), 403);
+        abort_unless($this->post->canEdit(auth()->user()), 403);
 
         PostMediaHandler::delete($this->post->media_path);
 

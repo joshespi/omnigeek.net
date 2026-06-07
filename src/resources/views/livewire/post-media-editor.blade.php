@@ -10,7 +10,7 @@
         @endif
     @endif
 
-    @if ($post->canDelete(auth()->user()))
+    @if ($editContext && $post->canEdit(auth()->user()))
         @if ($editing)
             <form wire:submit="replaceMedia" class="mt-2 flex items-center gap-2">
                 <input type="file" wire:model="replacement" accept="image/*,video/*" class="text-xs text-gray-600 dark:text-gray-300" />

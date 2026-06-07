@@ -18,6 +18,13 @@ class AdminPosts extends Component
 
     public ?int $editingId = null;
 
+    public bool $showPreview = false;
+
+    public function togglePreview(): void
+    {
+        $this->showPreview = ! $this->showPreview;
+    }
+
     public function edit(Post $post): void
     {
         $this->authorize('admin');
@@ -39,6 +46,7 @@ class AdminPosts extends Component
     {
         $this->form->reset();
         $this->editingId = null;
+        $this->showPreview = false;
     }
 
     #[Layout('layouts.app')]
