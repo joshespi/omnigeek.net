@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Enums\DigestCadence;
 use App\Support\SiteMedia;
 use Illuminate\Validation\Rules\Enum;
+use Livewire\Attributes\Layout;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -79,6 +80,7 @@ class AdminMedia extends Component
         SiteMedia::delete(SiteMedia::OG_DEFAULT);
     }
 
+    #[Layout('layouts.app')]
     public function render()
     {
         return view('livewire.admin-media', [
