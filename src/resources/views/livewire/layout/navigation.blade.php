@@ -119,6 +119,11 @@ new class extends Component
             <div class="hidden sm:flex sm:items-center sm:ms-6 gap-3">
                 <a href="{{ route('subscribe') }}" wire:navigate class="text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">{{ __('Subscribe') }}</a>
                 <x-theme-toggle />
+                @auth
+                    <button @click="$dispatch('open-compose')"
+                        class="flex items-center justify-center w-8 h-8 rounded-full bg-brand-600 hover:bg-brand-700 text-white text-xl leading-none font-light transition-colors"
+                        title="New post">+</button>
+                @endauth
                 @guest
                     <a href="{{ route('login') }}" wire:navigate class="text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">{{ __('Log in') }}</a>
                 @else

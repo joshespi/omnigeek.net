@@ -63,5 +63,29 @@
                 {{ $slot }}
             </main>
         </div>
+
+        @auth
+        <div
+            x-data="{ open: false }"
+            x-on:open-compose.window="open = true"
+            x-on:close-compose.window="open = false"
+            x-on:keydown.escape.window="open = false"
+            x-show="open"
+            x-cloak
+            class="fixed inset-0 z-50 flex items-start justify-center pt-16 px-4"
+        >
+            {{-- backdrop --}}
+            <div class="absolute inset-0 bg-black/50" @click="open = false"></div>
+
+            {{-- modal panel --}}
+            <div class="relative z-10 w-full max-w-2xl bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 max-h-[85vh] overflow-y-auto">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-base font-semibold text-gray-900 dark:text-gray-100">New post</h2>
+                    <button @click="open = false" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xl leading-none">&times;</button>
+                </div>
+                <livewire:compose-post />
+            </div>
+        </div>
+        @endauth
     </body>
 </html>
