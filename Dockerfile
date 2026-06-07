@@ -38,13 +38,17 @@ WORKDIR /var/www/html
 
 COPY src/ ./
 COPY --from=assets /app/public/build ./public/build
-RUN mkdir -p bootstrap/cache storage/framework/cache storage/framework/sessions storage/framework/views storage/logs \
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh \
+    && mkdir -p bootstrap/cache storage/framework/cache storage/framework/sessions storage/framework/views storage/logs \
     && chown -R 1000:1000 storage bootstrap/cache
 
 FROM base AS prod
 COPY --from=vendor-prod /app/vendor ./vendor
 RUN composer dump-autoload --no-dev --optimize
+ENTRYPOINT ["/entrypoint.sh"]
 
 FROM base AS dev
 COPY --from=vendor-dev /app/vendor ./vendor
 RUN composer dump-autoload --optimize
+ENTRYPOINT ["/entrypoint.sh"]
