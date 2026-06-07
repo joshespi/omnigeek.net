@@ -12,9 +12,9 @@ class Post extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'title', 'body', 'media_path', 'media_type', 'youtube_id'];
+    protected $fillable = ['user_id', 'title', 'body', 'media_path', 'media_type', 'youtube_id', 'published_at'];
 
-    protected $casts = ['view_count' => 'integer'];
+    protected $casts = ['view_count' => 'integer', 'published_at' => 'datetime'];
 
     public function user(): BelongsTo
     {
@@ -24,6 +24,18 @@ class Post extends Model
     public function scopeWithFeedRelations(Builder $query): Builder
     {
         return $query->with('user', 'categories', 'tags');
+    }
+
+    public function scopePublished(Builder $query): Builder
+    {
+        return $query->where(function (Builder $q) {
+            $q->whereNull('published_at')->orWhere('published_at', '<=', now());
+        });
+    }
+
+    public function displayDate(): \Illuminate\Support\Carbon
+    {
+        return $this->published_at ?? $this->created_at;
     }
 
     public function scopeSearch(Builder $query, string $term): Builder

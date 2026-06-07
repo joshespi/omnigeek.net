@@ -29,6 +29,9 @@ class PostForm extends Form
     #[Validate('nullable|string|max:255')]
     public string $tags = '';
 
+    #[Validate('nullable|date')]
+    public string $publishedAt = '';
+
     public function setFromPost(Post $post): void
     {
         $post->loadMissing('categories', 'tags');
@@ -38,6 +41,7 @@ class PostForm extends Form
         $this->youtube = $post->youtube_id ?? '';
         $this->selectedCategories = $post->categories->pluck('id')->map(intval(...))->all();
         $this->tags = $post->tags->pluck('name')->implode(' ');
+        $this->publishedAt = $post->published_at ? $post->published_at->format('Y-m-d\TH:i') : '';
     }
 
     public function save(?Post $post = null): Post
@@ -64,6 +68,7 @@ class PostForm extends Form
             'title' => trim($this->title) ?: null,
             'body' => trim($this->body) ?: null,
             'youtube_id' => $youtubeId,
+            'published_at' => $this->publishedAt ? \Carbon\Carbon::parse($this->publishedAt) : null,
         ];
 
         if ($this->media) {

@@ -26,7 +26,7 @@ class GeekProfile extends Component
             : $this->user->name.' on '.config('app.name').'.';
 
         return view('livewire.geek-profile', [
-            'posts' => $this->user->posts()->withFeedRelations()->latest()->paginate(15),
+            'posts' => $this->user->posts()->withFeedRelations()->published()->orderByRaw('COALESCE(published_at, created_at) DESC')->paginate(15),
         ])->layout('layouts.app', [
             'ogTitle'       => $this->user->name,
             'ogDescription' => $description,

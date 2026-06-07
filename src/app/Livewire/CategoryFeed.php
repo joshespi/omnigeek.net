@@ -24,7 +24,7 @@ class CategoryFeed extends Component
     public function render()
     {
         return view('livewire.category-feed', [
-            'posts' => $this->category->posts()->withFeedRelations()->latest()->paginate(15),
+            'posts' => $this->category->posts()->withFeedRelations()->published()->orderByRaw('COALESCE(published_at, created_at) DESC')->paginate(15),
         ]);
     }
 }

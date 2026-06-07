@@ -32,6 +32,13 @@
         @endif
         <x-input-error :messages="$errors->get('form.tags')" class="mt-1" />
 
+        <div class="mt-3">
+            <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Post date (optional — leave blank to publish now)</label>
+            <input type="datetime-local" wire:model="form.publishedAt"
+                class="border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:border-brand-500 focus:ring-brand-500 text-sm" />
+            <x-input-error :messages="$errors->get('form.publishedAt')" class="mt-1" />
+        </div>
+
         <div class="flex items-center justify-between mt-4">
             <label class="text-sm text-gray-600 dark:text-gray-400 cursor-pointer">
                 <input type="file" wire:model="form.media" accept="image/*,video/*" class="text-sm" />

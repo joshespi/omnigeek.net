@@ -11,7 +11,7 @@
                     <div class="space-y-3">
                         <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-2">
                             <x-avatar :user="$post->user" size="sm" />
-                            <span>{{ $post->user->name }} · {{ $post->created_at->diffForHumans() }}</span>
+                            <span>{{ $post->user->name }} · {{ $post->displayDate()->diffForHumans() }}</span>
                         </div>
 
                         <div>
@@ -45,6 +45,13 @@
                             <x-input-error :messages="$errors->get('form.tags')" class="mt-1" />
                         </div>
 
+                        <div>
+                            <x-input-label value="Post date (leave blank to publish immediately)" />
+                            <input type="datetime-local" wire:model="form.publishedAt"
+                                class="mt-1 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:border-brand-500 focus:ring-brand-500 text-sm" />
+                            <x-input-error :messages="$errors->get('form.publishedAt')" class="mt-1" />
+                        </div>
+
                         <div class="flex items-center gap-3 pt-1">
                             <x-primary-button wire:click="update">Save</x-primary-button>
                             <button wire:click="cancelEdit" type="button"
@@ -58,7 +65,10 @@
                                 <x-avatar :user="$post->user" size="sm" />
                                 <a href="{{ route('geeks.show', $post->user) }}" wire:navigate class="hover:underline">{{ $post->user->name }}</a>
                                 <span>·</span>
-                                <a href="{{ route('posts.show', $post) }}" wire:navigate class="hover:underline">{{ $post->created_at->diffForHumans() }}</a>
+                                <a href="{{ route('posts.show', $post) }}" wire:navigate class="hover:underline">{{ $post->displayDate()->diffForHumans() }}</a>
+                                @if ($post->published_at && $post->published_at->isFuture())
+                                    <span class="text-xs px-1.5 py-0.5 rounded bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300">Scheduled</span>
+                                @endif
                             </div>
 
                             @if ($post->title)

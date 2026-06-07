@@ -24,7 +24,7 @@ class TagFeed extends Component
     public function render()
     {
         return view('livewire.tag-feed', [
-            'posts' => $this->tag->posts()->withFeedRelations()->latest()->paginate(15),
+            'posts' => $this->tag->posts()->withFeedRelations()->published()->orderByRaw('COALESCE(published_at, created_at) DESC')->paginate(15),
         ]);
     }
 }

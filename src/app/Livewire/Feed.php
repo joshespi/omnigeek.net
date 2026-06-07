@@ -29,7 +29,7 @@ class Feed extends Component
     public function render()
     {
         return view('livewire.feed', [
-            'posts' => Post::withFeedRelations()->latest()->paginate(15),
+            'posts' => Post::withFeedRelations()->published()->orderByRaw('COALESCE(published_at, created_at) DESC')->paginate(15),
         ]);
     }
 }

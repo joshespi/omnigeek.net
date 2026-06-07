@@ -8,7 +8,7 @@
                 <a href="{{ route('geeks.show', $post->user) }}" wire:navigate
                     class="font-semibold text-gray-900 dark:text-gray-100 hover:underline">{{ $post->user->name }}</a>
                 <a href="{{ route('posts.show', $post) }}" wire:navigate
-                    class="text-gray-400 text-sm hover:underline">· {{ $post->created_at->diffForHumans() }}</a>
+                    class="text-gray-400 text-sm hover:underline">· {{ $post->displayDate()->diffForHumans() }}</a>
             </div>
         </div>
         @if ($full && $post->canDelete(auth()->user()))

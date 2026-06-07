@@ -75,7 +75,7 @@ class AdminPosts extends Component
         $this->authorize('admin');
 
         return view('livewire.admin-posts', [
-            'posts' => Post::withFeedRelations()->latest()->paginate(25),
+            'posts' => Post::withFeedRelations()->orderByRaw('COALESCE(published_at, created_at) DESC')->paginate(25),
             'categories' => $this->editingId ? Category::orderBy('name')->get() : collect(),
         ]);
     }

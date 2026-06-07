@@ -37,14 +37,14 @@ Rule: deployment-specific/secret → root; app default → `src/`. Root wins on 
 
 ## Features
 
-- **Feed** (`/`) — public read; shareable permalinks at `/post/{id}`. Composer (logged-in only): markdown body (bold/italic/links/lists/quotes/code; live preview toggle), optional title, one image/video ≤50 MB (jpg/png/gif/webp/mp4/webm/mov), and/or a YouTube URL. Images are compressed on upload (max 1600 px wide, JPEG q82 or PNG; EXIF-rotated). Videos stored as-is. Delete your own posts only (enforced server-side). Media under `storage/app/public/uploads` via the `public/storage` symlink.
-- **Avatars** — set on the Profile page (≤5 MB, compressed to 512 px); initials circle as fallback.
-- **Geeks** (`/geeks/{user}`) — public per-user profile: avatar, bio, their posts. Nav dropdown + post-card name links.
-- **Categories** — fixed, admin-curated (seeded: Video Games, Reading, Movies/TV, Misc). Picked as pills in the composer; chips link to `/categories/{slug}`. Seeded by `CategorySeeder` (default `db:seed`).
-- **Tags** — freeform hashtags, lowercased + slugged on save (`#Rust`/`rust`/`RUST` collapse to one), autocomplete hints in the composer. `#tag` chips link to `/tags/{slug}`. `/tags` filters the feed by ANY selected tag (selection in the URL, shareable).
-- **Admin** — users with `is_admin = true` (primary user flagged by `DemoPostsSeeder`). `/admin` + `/admin/categories` (category CRUD) + `/admin/media` (logo, OG image, digest cadence), gated by `can:admin`. Flag others: `User::where('email', …)->update(['is_admin' => true])`. Logo and OG image are compressed on upload; URLs include a `?v={APP_VERSION}-{mtime}` cache-bust token.
-- **Email subscribe** (`/subscribe`) — double opt-in, token-based confirm/unsubscribe (no login). Scope by any mix of categories/geeks/tags (JSON `filters`, match ANY; empty = everything). Two delivery modes per subscriber (`frequency` column): `instant` queues `NotifySubscribersOfNewPost` on each publish; `digest` is batched by the `digest:send` command. Digest cadence (daily/weekly/monthly) is a global admin setting at `/admin/media`, read by the scheduler from cache (`DigestCadence`); `digest:send` covers posts since each subscriber's `last_notified_at` (falling back to one cadence-window). The `channel` column is a seam for future push/Discord — only email wired. Needs a mailer, a queue worker, and (for digests) the `scheduler` service running `schedule:work`.
-- **Dark mode** — nav toggle, saved in `localStorage`, applied pre-paint; Tailwind `darkMode: 'class'`.
+- **Feed** — public read, auth-gated posting. Markdown body, optional title/image/video (≤50 MB)/YouTube. Images compressed on upload (1600 px max, JPEG q82). Scheduled/backdated posts via post date field.
+- **Geeks** (`/geeks/{user}`) — per-user profile: avatar (512 px, initials fallback), bio, posts.
+- **Categories** — admin-curated pills in the composer; chips link to `/categories/{slug}`.
+- **Tags** — freeform; collapsed to lowercase slug. `/tags` filters by selected tags (shareable URL).
+- **Search** — `/search?q=` across title, body, author.
+- **Admin** — `/admin`: post + category management, user list, activity log, site media (logo, OG image, digest cadence). Gate: `is_admin = true`.
+- **Email subscribe** (`/subscribe`) — double opt-in, no login. Filter by category/geek/tag. Delivery: `instant` (queued on publish) or `digest` (daily/weekly/monthly via `digest:send` + scheduler).
+- **Dark mode** — nav toggle, `localStorage`, applied pre-paint.
 
 ## Inviting people
 
@@ -58,16 +58,14 @@ docker compose exec -u 1000 app php artisan invite:make [--email=friend@example.
 
 ## Seeding
 
-`php artisan migrate --seed` (or `migrate:fresh --seed`) runs `DatabaseSeeder`: categories → the **admin user** (`InitialUserSeeder`, from `INITIAL_USER_*`) → demo content (`DemoPostsSeeder`: named geeks with bios/posts/tags + sample media on the admin user). All idempotent.
-
-Run a piece on its own:
+`migrate --seed` runs: categories → admin user (`INITIAL_USER_*`) → demo content (geeks, posts, media). All idempotent. Individual seeders:
 
 ```bash
-docker compose exec -u 1000 app php artisan db:seed --class=InitialUserSeeder   # just the admin login
-docker compose exec -u 1000 app php artisan db:seed --class=DemoPostsSeeder     # geeks + sample posts
+docker compose exec -u 1000 app php artisan db:seed --class=InitialUserSeeder
+docker compose exec -u 1000 app php artisan db:seed --class=DemoPostsSeeder
 ```
 
-Geeks use `@omnigeek.test` / `password` — local demo accounts only.
+Demo accounts use `@omnigeek.test` / `password`.
 
 ## Local dev vs. production
 
@@ -77,12 +75,13 @@ Locally, `docker-compose.override.yml` (auto-merged) flips `app` to `target: dev
 
 Rebuild (`docker compose build app`) only on Dockerfile/dependency changes — adding a Composer package, or editing PHP outside `resources`/`routes`, needs a rebuild to land in the image.
 
-Image compression uses [`intervention/image`](https://image.intervention.io/) v4 with the GD driver (GD is compiled into the image with JPEG/PNG/WebP support). The Dockerfile also sets PHP upload limits (`upload_max_filesize=64M`, `post_max_size=72M`, `memory_limit=256M`) and nginx `client_max_body_size 72M` — change both together if you need a different cap.
+PHP upload limits: `upload_max_filesize=64M`, `post_max_size=72M` (set in Dockerfile); nginx `client_max_body_size 72M` — change together if needed.
 
-There's no `npm` in the containers — build assets via a throwaway node container (live immediately under the override). Rerun after adding Tailwind classes:
+No `npm` in containers. Rebuild assets or watch with a throwaway node container:
 
 ```bash
-docker run --rm -v "$PWD/src":/app -w /app node:24-alpine sh -c "npm install && npm run build"
+docker run --rm -v "$PWD/src":/app -w /app node:24-alpine sh -c "npm run build"   # one-shot
+docker run --rm -v "$PWD/src":/app -w /app node:24-alpine sh -c "npm run dev"     # watch
 ```
 
 ## Day-to-day
@@ -94,7 +93,7 @@ docker compose exec -u 1000 app php artisan queue:work     # process queued subs
 docker run --rm -v "$PWD/src":/app -w /app node:24-alpine sh -c "npm run dev"   # asset watch
 ```
 
-`php artisan test` runs in the `dev`-target `app` container (the prod image has no phpunit). `phpunit.xml` forces `APP_ENV=testing` (`force="true"`), so it overrides the container's OS `APP_ENV=local` that would otherwise shadow it and break Livewire's test-macro registration. Tests use an in-memory sqlite DB; further overrides live in `src/.env.testing`. `composer test` also works.
+Runs in the `dev`-target `app` container (prod image has no phpunit). Uses in-memory sqlite; overrides in `src/.env.testing`. `phpunit.xml` forces `APP_ENV=testing` so the container's OS env doesn't shadow it.
 
 ## Roadmap
 
