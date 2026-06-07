@@ -6,13 +6,20 @@ use App\Livewire\Forms\PostForm;
 use App\Models\Category;
 use App\Models\Post;
 use App\Models\Tag;
+use Livewire\Attributes\Validate;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 class PostEditor extends Component
 {
+    use WithFileUploads;
+
     public Post $post;
 
     public PostForm $form;
+
+    #[Validate('nullable|file|max:51200|mimes:jpg,jpeg,png,gif,webp,mp4,webm,mov')]
+    public $media = null;
 
     public bool $editing = false;
 
@@ -31,6 +38,7 @@ class PostEditor extends Component
     {
         $this->editing = false;
         $this->showPreview = false;
+        $this->reset('media');
         $this->form->reset();
         $this->resetValidation();
     }
@@ -44,8 +52,11 @@ class PostEditor extends Component
     {
         abort_unless($this->post->canEdit(auth()->user()), 403);
 
-        $this->form->save($this->post);
+        $this->validateOnly('media');
 
+        $this->form->save($this->post, media: $this->media);
+
+        $this->reset('media');
         $this->editing = false;
         $this->showPreview = false;
     }

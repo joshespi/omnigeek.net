@@ -76,7 +76,7 @@ class FeedTest extends TestCase
 
         Livewire::actingAs($user)
             ->test(ComposePost::class)
-            ->set('form.media', UploadedFile::fake()->image('photo.jpg'))
+            ->set('media', UploadedFile::fake()->image('photo.jpg'))
             ->call('save')
             ->assertHasNoErrors();
 
@@ -92,7 +92,7 @@ class FeedTest extends TestCase
 
         Livewire::actingAs($user)
             ->test(ComposePost::class)
-            ->set('form.media', UploadedFile::fake()->create('clip.mp4', 100, 'video/mp4'))
+            ->set('media', UploadedFile::fake()->create('clip.mp4', 100, 'video/mp4'))
             ->call('save')
             ->assertHasNoErrors();
 

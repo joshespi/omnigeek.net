@@ -20,9 +20,6 @@ class PostForm extends Form
     #[Validate('nullable|string|max:255')]
     public string $youtube = '';
 
-    #[Validate('nullable|file|max:51200|mimes:jpg,jpeg,png,gif,webp,mp4,webm,mov')]
-    public $media = null;
-
     #[Validate(['selectedCategories' => 'array', 'selectedCategories.*' => 'integer|exists:categories,id'])]
     public array $selectedCategories = [];
 
@@ -44,7 +41,7 @@ class PostForm extends Form
         $this->publishedAt = $post->published_at ? $post->published_at->format('Y-m-d\TH:i') : '';
     }
 
-    public function save(?Post $post = null): Post
+    public function save(?Post $post = null, mixed $media = null): Post
     {
         $this->validate();
 
@@ -58,7 +55,7 @@ class PostForm extends Form
 
         $hasExistingMedia = (bool) $post?->media_path;
 
-        if (trim($this->body) === '' && ! $this->media && ! $hasExistingMedia && ! $youtubeId) {
+        if (trim($this->body) === '' && ! $media && ! $hasExistingMedia && ! $youtubeId) {
             throw ValidationException::withMessages([
                 'form.body' => __('Write something, add media, or paste a YouTube link.'),
             ]);
@@ -71,8 +68,8 @@ class PostForm extends Form
             'published_at' => $this->publishedAt ? \Carbon\Carbon::parse($this->publishedAt) : null,
         ];
 
-        if ($this->media) {
-            $stored = PostMediaHandler::store($this->media);
+        if ($media) {
+            $stored = PostMediaHandler::store($media);
             $attributes['media_path'] = $stored['path'];
             $attributes['media_type'] = $stored['type'];
         }

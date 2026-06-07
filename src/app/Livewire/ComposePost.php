@@ -7,6 +7,7 @@ use App\Livewire\Forms\PostForm;
 use App\Models\Category;
 use App\Models\Tag;
 use Livewire\Component;
+use Livewire\Attributes\Validate;
 use Livewire\WithFileUploads;
 
 class ComposePost extends Component
@@ -14,6 +15,9 @@ class ComposePost extends Component
     use WithFileUploads;
 
     public PostForm $form;
+
+    #[Validate('nullable|file|max:51200|mimes:jpg,jpeg,png,gif,webp,mp4,webm,mov')]
+    public $media = null;
 
     public bool $showPreview = false;
 
@@ -26,10 +30,13 @@ class ComposePost extends Component
     {
         abort_unless(auth()->check(), 403);
 
-        $post = $this->form->save();
+        $this->validateOnly('media');
+
+        $post = $this->form->save(media: $this->media);
 
         NotifySubscribersOfNewPost::dispatch($post);
 
+        $this->reset('media');
         $this->form->reset();
         $this->showPreview = false;
 
