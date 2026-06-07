@@ -26,7 +26,7 @@ Set `INITIAL_USER_EMAIL` / `INITIAL_USER_PASSWORD` in the root `.env` **before**
 
 ### Env files
 
-- **Root `.env`** — per-deployment source of truth (`APP_*`, DB creds, `INITIAL_USER_*`). docker-compose injects it into the `app` container, overriding `src/.env`.
+- **Root `.env`** — per-deployment source of truth (`APP_*`, DB creds, `INITIAL_USER_*`, `APP_VERSION`). docker-compose injects it into the `app` container, overriding `src/.env`.
 - **`src/.env`** — app defaults (`APP_NAME`, drivers, DB host/port/name, `VITE_*`).
 
 Rule: deployment-specific/secret → root; app default → `src/`. Root wins on conflict.
@@ -37,12 +37,12 @@ Rule: deployment-specific/secret → root; app default → `src/`. Root wins on 
 
 ## Features
 
-- **Feed** (`/`) — public read; shareable permalinks at `/post/{id}`. Composer (logged-in only): text ≤1000 chars, one image/video ≤50 MB (jpg/png/gif/webp/mp4/webm/mov), and/or a YouTube URL. Delete your own posts only (enforced server-side). Media under `storage/app/public/uploads` via the `public/storage` symlink.
-- **Avatars** — set on the Profile page (≤5 MB); initials circle as fallback.
+- **Feed** (`/`) — public read; shareable permalinks at `/post/{id}`. Composer (logged-in only): markdown body (bold/italic/links/lists/quotes/code; live preview toggle), optional title, one image/video ≤50 MB (jpg/png/gif/webp/mp4/webm/mov), and/or a YouTube URL. Images are compressed on upload (max 1600 px wide, JPEG q82 or PNG; EXIF-rotated). Videos stored as-is. Delete your own posts only (enforced server-side). Media under `storage/app/public/uploads` via the `public/storage` symlink.
+- **Avatars** — set on the Profile page (≤5 MB, compressed to 512 px); initials circle as fallback.
 - **Geeks** (`/geeks/{user}`) — public per-user profile: avatar, bio, their posts. Nav dropdown + post-card name links.
 - **Categories** — fixed, admin-curated (seeded: Video Games, Reading, Movies/TV, Misc). Picked as pills in the composer; chips link to `/categories/{slug}`. Seeded by `CategorySeeder` (default `db:seed`).
 - **Tags** — freeform hashtags, lowercased + slugged on save (`#Rust`/`rust`/`RUST` collapse to one), autocomplete hints in the composer. `#tag` chips link to `/tags/{slug}`. `/tags` filters the feed by ANY selected tag (selection in the URL, shareable).
-- **Admin** — users with `is_admin = true` (primary user flagged by `DemoPostsSeeder`). `/admin` + `/admin/categories` (category CRUD), gated by `can:admin`. Flag others: `User::where('email', …)->update(['is_admin' => true])`.
+- **Admin** — users with `is_admin = true` (primary user flagged by `DemoPostsSeeder`). `/admin` + `/admin/categories` (category CRUD) + `/admin/media` (logo, OG image, digest cadence), gated by `can:admin`. Flag others: `User::where('email', …)->update(['is_admin' => true])`. Logo and OG image are compressed on upload; URLs include a `?v={APP_VERSION}-{mtime}` cache-bust token.
 - **Email subscribe** (`/subscribe`) — double opt-in, token-based confirm/unsubscribe (no login). Scope by any mix of categories/geeks/tags (JSON `filters`, match ANY; empty = everything). Two delivery modes per subscriber (`frequency` column): `instant` queues `NotifySubscribersOfNewPost` on each publish; `digest` is batched by the `digest:send` command. Digest cadence (daily/weekly/monthly) is a global admin setting at `/admin/media`, read by the scheduler from cache (`DigestCadence`); `digest:send` covers posts since each subscriber's `last_notified_at` (falling back to one cadence-window). The `channel` column is a seam for future push/Discord — only email wired. Needs a mailer, a queue worker, and (for digests) the `scheduler` service running `schedule:work`.
 - **Dark mode** — nav toggle, saved in `localStorage`, applied pre-paint; Tailwind `darkMode: 'class'`.
 
@@ -76,6 +76,8 @@ The `Dockerfile` builds a lean **prod** image (bakes `src/`, `composer install -
 Locally, `docker-compose.override.yml` (auto-merged) bind-mounts `./src` into **both** `app` and `nginx`, so edits/`git pull` are live and `composer test` uses the host's dev `vendor`. Both containers need the mount — PHP reads the Vite manifest, nginx serves the files; mount only one and the hashes drift → 404/no CSS. Prod has no override file, so it runs the baked image. Same commands everywhere.
 
 Rebuild (`docker compose build`) only on Dockerfile/dependency changes. After a fresh clone: `docker compose exec -u 1000 app composer install` once.
+
+Image compression uses [`intervention/image`](https://image.intervention.io/) v4 with the GD driver (GD is compiled into the image with JPEG/PNG/WebP support). The Dockerfile also sets PHP upload limits (`upload_max_filesize=64M`, `post_max_size=72M`, `memory_limit=256M`) and nginx `client_max_body_size 72M` — change both together if you need a different cap.
 
 There's no `npm` in the containers — build assets via a throwaway node container (live immediately under the override). Rerun after adding Tailwind classes:
 

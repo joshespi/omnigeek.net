@@ -9,6 +9,9 @@ use App\Models\Post;
 use App\Models\Tag;
 use App\Support\ImageProcessor;
 use Illuminate\Validation\ValidationException;
+use League\CommonMark\Environment\Environment;
+use League\CommonMark\Extension\CommonMark\CommonMarkCoreExtension;
+use League\CommonMark\MarkdownConverter;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
@@ -38,6 +41,21 @@ class Feed extends Component
 
     #[Validate('nullable|string|max:255')]
     public string $tags = '';
+
+    public bool $showPreview = false;
+
+    public function togglePreview(): void
+    {
+        $this->showPreview = ! $this->showPreview;
+    }
+
+    public function renderedBody(): string
+    {
+        $env = new Environment(['html_input' => 'strip', 'allow_unsafe_links' => false]);
+        $env->addExtension(new CommonMarkCoreExtension());
+
+        return (string) (new MarkdownConverter($env))->convert($this->body);
+    }
 
     public function save(): void
     {

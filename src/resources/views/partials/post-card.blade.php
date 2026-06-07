@@ -24,9 +24,11 @@
     @endif
 
     @if ($post->body)
-        @php $truncated = !$full && mb_strlen($post->body) > 250; @endphp
-        <p class="text-gray-800 dark:text-gray-200 whitespace-pre-wrap break-words mb-2">{{ $truncated ? mb_substr($post->body, 0, 250).'…' : $post->body }}</p>
-        @if ($truncated)
+        @php $long = !$full && mb_strlen($post->body) > 250; @endphp
+        <div class="mb-2 {{ $long ? 'line-clamp-4' : '' }}">
+            <x-markdown :text="$post->body" />
+        </div>
+        @if ($long)
             <a href="{{ route('posts.show', $post) }}" wire:navigate
                 class="text-xs text-brand-600 dark:text-brand-400 hover:underline">Read more</a>
         @endif
