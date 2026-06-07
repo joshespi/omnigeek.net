@@ -19,7 +19,7 @@ services:
       target: prod
     env_file: .env
     command: ["php", "artisan", "queue:work", "--sleep=3", "--tries=3", "--max-time=3600"]
-    user: "1000"
+    user: www-data
     volumes:
       - storage:/var/www/html/storage/app/public
     restart: always
@@ -35,7 +35,7 @@ services:
       target: prod
     env_file: .env
     command: ["php", "artisan", "schedule:work"]
-    user: "1000"
+    user: www-data
     volumes:
       - storage:/var/www/html/storage/app/public
     restart: always

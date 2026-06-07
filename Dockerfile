@@ -31,9 +31,6 @@ RUN { \
         echo 'memory_limit = 256M'; \
     } > /usr/local/etc/php/conf.d/uploads.ini
 
-# Run the fpm worker pool as host uid/gid so container-written files stay host-editable
-RUN sed -i 's/^user = www-data/user = 1000/; s/^group = www-data/group = 1000/' /usr/local/etc/php-fpm.d/www.conf
-
 WORKDIR /var/www/html
 
 COPY src/ ./
@@ -41,7 +38,7 @@ COPY --from=assets /app/public/build ./public/build
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh \
     && mkdir -p bootstrap/cache storage/framework/cache storage/framework/sessions storage/framework/views storage/logs \
-    && chown -R 1000:1000 storage bootstrap/cache
+    && chown -R www-data:www-data storage bootstrap/cache
 
 FROM base AS prod
 COPY --from=vendor-prod /app/vendor ./vendor
