@@ -15,9 +15,9 @@ class SiteMedia
         return self::urlOrNull(self::LOGO);
     }
 
-    public static function ogDefaultUrl(): ?string
+    public static function ogDefaultUrl(): string
     {
-        return self::urlOrNull(self::OG_DEFAULT);
+        return self::urlOrNull(self::OG_DEFAULT) ?? asset('icons/web-app-manifest-512x512.png');
     }
 
     public static function store(string $path, UploadedFile $file, int $maxWidth): void

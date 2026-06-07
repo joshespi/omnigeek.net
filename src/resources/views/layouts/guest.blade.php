@@ -7,6 +7,10 @@
 
         <title>{{ config('app.name', 'Laravel') }}</title>
 
+        <!-- Favicon -->
+        <link rel="icon" type="image/png" sizes="512x512" href="/icons/web-app-manifest-512x512.png">
+        <link rel="icon" type="image/png" sizes="192x192" href="/icons/web-app-manifest-192x192.png">
+
         <!-- PWA -->
         <link rel="manifest" href="/manifest.json">
         <meta name="theme-color" content="#7c3aed">
