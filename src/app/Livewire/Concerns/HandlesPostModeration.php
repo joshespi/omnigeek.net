@@ -3,6 +3,7 @@
 namespace App\Livewire\Concerns;
 
 use App\Enums\Feed;
+use App\Models\ActivityLog;
 use App\Models\Post;
 
 trait HandlesPostModeration
@@ -11,7 +12,12 @@ trait HandlesPostModeration
     {
         abort_unless($post->canDelete(auth()->user()), 403);
 
+        $label = $post->preview(80);
+        $id = $post->id;
+
         $post->delete();
+
+        ActivityLog::record('post.delete', 'post', $id, $label);
 
         $this->afterDelete();
     }
@@ -24,6 +30,8 @@ trait HandlesPostModeration
 
         $target = $post->oppositeFeed();
         $post->update(['feed' => $target]);
+
+        ActivityLog::record('post.move', 'post', $post->id, $post->preview(80), ['to' => $target->value]);
 
         $this->afterMove($post, $target);
     }

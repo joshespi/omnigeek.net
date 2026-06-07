@@ -3,6 +3,7 @@
 namespace App\Livewire\Forms;
 
 use App\Enums\Feed;
+use App\Models\ActivityLog;
 use App\Models\Post;
 use App\Models\Tag;
 use App\Support\PostMediaHandler;
@@ -73,6 +74,8 @@ class PostForm extends Form
             'feed'       => $this->toMemes ? Feed::Memes : Feed::Main,
         ];
 
+        $isNew = ! $post;
+
         $post = $post
             ? tap($post)->update($attributes)
             : auth()->user()->posts()->create($attributes);
@@ -86,6 +89,10 @@ class PostForm extends Form
 
         $post->categories()->sync($this->selectedCategories);
         $post->tags()->sync(Tag::fromText($this->tags)->pluck('id'));
+
+        if ($isNew) {
+            ActivityLog::record('post.create', 'post', $post->id, $post->preview(80), ['feed' => $post->feed->value]);
+        }
 
         return $post->refresh();
     }

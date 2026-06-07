@@ -26,20 +26,6 @@ class AdminPosts extends Component
         $this->resetPage();
     }
 
-    public function deletePost(Post $post): void
-    {
-        abort_unless($post->canDelete(auth()->user()), 403);
-
-        $label = $post->preview(80);
-        $id = $post->id;
-
-        $post->delete();
-
-        ActivityLog::record('post.delete', 'post', $id, $label);
-
-        $this->afterDelete();
-    }
-
     public PostForm $form;
 
     public ?int $editingId = null;

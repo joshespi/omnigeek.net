@@ -6,8 +6,10 @@
 
     @php
     $labels = [
+        'post.create'        => 'Created post',
         'post.update'        => 'Edited post',
         'post.delete'        => 'Deleted post',
+        'post.move'          => 'Moved post',
         'user.update'        => 'Edited user',
         'user.delete'        => 'Deleted user',
         'user.toggle_admin'  => 'Toggled admin',
@@ -35,6 +37,9 @@
                         <span class="ml-1 text-xs px-1.5 py-0.5 rounded {{ $entry->meta['is_admin'] ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400' }}">
                             {{ $entry->meta['is_admin'] ? 'granted' : 'revoked' }}
                         </span>
+                    @endif
+                    @if ($entry->action === 'post.move' && isset($entry->meta['to']))
+                        <span class="ml-1 text-xs px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400">→ {{ $entry->meta['to'] }}</span>
                     @endif
                 </div>
             </div>
