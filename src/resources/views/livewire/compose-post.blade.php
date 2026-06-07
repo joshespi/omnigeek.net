@@ -43,7 +43,7 @@
             <label class="text-sm text-gray-600 dark:text-gray-400 cursor-pointer">
                 <input type="file" wire:model="media" accept="image/*,video/*" class="text-sm" />
             </label>
-            <x-primary-button>Post</x-primary-button>
+            <x-primary-button wire:loading.attr="disabled" wire:target="media">Post</x-primary-button>
         </div>
         <x-input-error :messages="$errors->get('media')" class="mt-1" />
         <div wire:loading wire:target="media" class="text-sm text-gray-500 mt-1">Uploading…</div>

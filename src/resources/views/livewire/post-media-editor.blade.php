@@ -14,7 +14,8 @@
         @if ($editing)
             <form wire:submit="replaceMedia" class="mt-2 flex items-center gap-2">
                 <input type="file" wire:model="replacement" accept="image/*,video/*" class="text-xs text-gray-600 dark:text-gray-300" />
-                <button type="submit" class="text-xs text-brand-600 dark:text-brand-400 hover:underline">Save</button>
+                <button type="submit" wire:loading.attr="disabled" wire:target="replacement"
+                    class="text-xs text-brand-600 dark:text-brand-400 hover:underline disabled:opacity-40 disabled:cursor-not-allowed">Save</button>
                 <button type="button" wire:click="$set('editing', false)" class="text-xs text-gray-400 hover:underline">Cancel</button>
                 @if ($post->media_path)
                     <button type="button" wire:click="removeMedia" wire:confirm="Remove this media?"
