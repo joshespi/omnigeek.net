@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Livewire\Feed;
+use App\Livewire\ComposePost;
 use App\Livewire\TagFeed;
 use App\Models\Tag;
 use App\Models\User;
@@ -19,9 +19,9 @@ class TagTest extends TestCase
         $user = User::factory()->create();
 
         Livewire::actingAs($user)
-            ->test(Feed::class)
-            ->set('body', 'Hello')
-            ->set('tags', '#Rust #HomeLab homelab')
+            ->test(ComposePost::class)
+            ->set('form.body', 'Hello')
+            ->set('form.tags', '#Rust #HomeLab homelab')
             ->call('save')
             ->assertHasNoErrors();
 
@@ -67,9 +67,9 @@ class TagTest extends TestCase
         $user = User::factory()->create();
 
         Livewire::actingAs($user)
-            ->test(Feed::class)
-            ->set('body', 'no tags here')
-            ->set('tags', '')
+            ->test(ComposePost::class)
+            ->set('form.body', 'no tags here')
+            ->set('form.tags', '')
             ->call('save')
             ->assertHasNoErrors();
 

@@ -3,7 +3,7 @@
 namespace Tests\Feature;
 
 use App\Livewire\CategoryFeed;
-use App\Livewire\Feed;
+use App\Livewire\ComposePost;
 use App\Models\Category;
 use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
@@ -30,9 +30,9 @@ class CategoryTest extends TestCase
         $misc = Category::create(['name' => 'Misc']);
 
         Livewire::actingAs($user)
-            ->test(Feed::class)
-            ->set('body', 'Categorised post')
-            ->set('selectedCategories', [$games->id, $misc->id])
+            ->test(ComposePost::class)
+            ->set('form.body', 'Categorised post')
+            ->set('form.selectedCategories', [$games->id, $misc->id])
             ->call('save')
             ->assertHasNoErrors();
 
@@ -43,11 +43,11 @@ class CategoryTest extends TestCase
     public function test_an_unknown_category_id_is_rejected(): void
     {
         Livewire::actingAs(User::factory()->create())
-            ->test(Feed::class)
-            ->set('body', 'Bad category')
-            ->set('selectedCategories', [9999])
+            ->test(ComposePost::class)
+            ->set('form.body', 'Bad category')
+            ->set('form.selectedCategories', [9999])
             ->call('save')
-            ->assertHasErrors('selectedCategories.0');
+            ->assertHasErrors('form.selectedCategories.0');
     }
 
     public function test_category_feed_shows_only_that_categorys_posts(): void

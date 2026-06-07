@@ -15,7 +15,7 @@ class Feed extends Component
     use WithPagination;
 
     #[On('post-created')]
-    public function refreshFeed(): void
+    public function onPostCreated(): void
     {
         $this->resetPage();
     }

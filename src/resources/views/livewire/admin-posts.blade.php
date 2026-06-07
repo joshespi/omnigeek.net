@@ -16,16 +16,16 @@
 
                         <div>
                             <x-input-label value="Title (optional)" />
-                            <x-text-input wire:model="editingTitle" type="text" class="mt-1 block w-full" placeholder="Post title" />
-                            <x-input-error :messages="$errors->get('editingTitle')" class="mt-1" />
+                            <x-text-input wire:model="form.title" type="text" class="mt-1 block w-full" placeholder="Post title" />
+                            <x-input-error :messages="$errors->get('form.title')" class="mt-1" />
                         </div>
 
                         <div>
                             <x-input-label value="Body" />
-                            <textarea wire:model="editingBody"
+                            <textarea wire:model="form.body"
                                 rows="4"
                                 class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 shadow-sm focus:border-brand-500 focus:ring-brand-500 text-sm"></textarea>
-                            <x-input-error :messages="$errors->get('editingBody')" class="mt-1" />
+                            <x-input-error :messages="$errors->get('form.body')" class="mt-1" />
                         </div>
 
                         <div>
@@ -33,7 +33,7 @@
                             <div class="flex flex-wrap gap-2 mt-1">
                                 @foreach ($categories as $cat)
                                     <label class="flex items-center gap-1 text-sm text-gray-700 dark:text-gray-300">
-                                        <input type="checkbox" wire:model="editingCategories" value="{{ $cat->id }}"
+                                        <input type="checkbox" wire:model="form.selectedCategories" value="{{ $cat->id }}"
                                             class="rounded border-gray-300 dark:border-gray-700 text-brand-600" />
                                         {{ $cat->name }}
                                     </label>
@@ -43,8 +43,8 @@
 
                         <div>
                             <x-input-label value="Tags (space or comma separated)" />
-                            <x-text-input wire:model="editingTags" type="text" class="mt-1 block w-full" placeholder="#rust gaming" />
-                            <x-input-error :messages="$errors->get('editingTags')" class="mt-1" />
+                            <x-text-input wire:model="form.tags" type="text" class="mt-1 block w-full" placeholder="#rust gaming" />
+                            <x-input-error :messages="$errors->get('form.tags')" class="mt-1" />
                         </div>
 
                         <div class="flex items-center gap-3 pt-1">

@@ -3,7 +3,7 @@
 namespace Tests\Feature;
 
 use App\Jobs\NotifySubscribersOfNewPost;
-use App\Livewire\Feed;
+use App\Livewire\ComposePost;
 use App\Livewire\Subscribe;
 use App\Models\Category;
 use App\Models\Subscription;
@@ -60,8 +60,8 @@ class SubscriptionTest extends TestCase
         Queue::fake();
 
         Livewire::actingAs(User::factory()->create())
-            ->test(Feed::class)
-            ->set('body', 'hello subscribers')
+            ->test(ComposePost::class)
+            ->set('form.body', 'hello subscribers')
             ->call('save')
             ->assertHasNoErrors();
 

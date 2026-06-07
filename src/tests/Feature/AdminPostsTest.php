@@ -53,8 +53,8 @@ class AdminPostsTest extends TestCase
         Livewire::actingAs($admin)
             ->test(AdminPosts::class)
             ->call('edit', $post)
-            ->set('editingBody', 'updated body')
-            ->set('editingCategories', [$category->id])
+            ->set('form.body', 'updated body')
+            ->set('form.selectedCategories', [$category->id])
             ->call('update')
             ->assertHasNoErrors();
 

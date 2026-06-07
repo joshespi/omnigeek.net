@@ -3,8 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\Post;
-use App\Support\ImageProcessor;
-use Illuminate\Support\Facades\Storage;
+use App\Support\PostMediaHandler;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -26,17 +25,10 @@ class PostMediaEditor extends Component
 
         $this->validate();
 
-        if ($this->post->media_path) {
-            Storage::disk('public')->delete($this->post->media_path);
-        }
+        PostMediaHandler::delete($this->post->media_path);
 
-        $isVideo = str_starts_with($this->replacement->getMimeType(), 'video/');
-        $this->post->update([
-            'media_path' => $isVideo
-                ? $this->replacement->store('uploads', 'public')
-                : ImageProcessor::compress($this->replacement, 'uploads', 1600),
-            'media_type' => $isVideo ? 'video' : 'image',
-        ]);
+        $stored = PostMediaHandler::store($this->replacement);
+        $this->post->update(['media_path' => $stored['path'], 'media_type' => $stored['type']]);
 
         $this->editing = false;
         $this->reset('replacement');
@@ -46,9 +38,7 @@ class PostMediaEditor extends Component
     {
         abort_unless($this->post->canDelete(auth()->user()), 403);
 
-        if ($this->post->media_path) {
-            Storage::disk('public')->delete($this->post->media_path);
-        }
+        PostMediaHandler::delete($this->post->media_path);
 
         $this->post->update(['media_path' => null, 'media_type' => null]);
         $this->editing = false;

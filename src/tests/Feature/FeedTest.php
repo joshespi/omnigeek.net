@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Livewire\ComposePost;
 use App\Livewire\Feed;
 use App\Models\Post;
 use App\Models\User;
@@ -20,8 +21,8 @@ class FeedTest extends TestCase
         $user = User::factory()->create();
 
         Livewire::actingAs($user)
-            ->test(Feed::class)
-            ->set('body', 'Hello world')
+            ->test(ComposePost::class)
+            ->set('form.body', 'Hello world')
             ->call('save')
             ->assertHasNoErrors();
 
@@ -36,10 +37,10 @@ class FeedTest extends TestCase
         $user = User::factory()->create();
 
         Livewire::actingAs($user)
-            ->test(Feed::class)
-            ->set('body', '   ')
+            ->test(ComposePost::class)
+            ->set('form.body', '   ')
             ->call('save')
-            ->assertHasErrors('body');
+            ->assertHasErrors('form.body');
 
         $this->assertDatabaseCount('posts', 0);
     }
@@ -49,8 +50,8 @@ class FeedTest extends TestCase
         $user = User::factory()->create();
 
         Livewire::actingAs($user)
-            ->test(Feed::class)
-            ->set('youtube', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ')
+            ->test(ComposePost::class)
+            ->set('form.youtube', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ')
             ->call('save')
             ->assertHasNoErrors();
 
@@ -62,10 +63,10 @@ class FeedTest extends TestCase
         $user = User::factory()->create();
 
         Livewire::actingAs($user)
-            ->test(Feed::class)
-            ->set('youtube', 'not a youtube link')
+            ->test(ComposePost::class)
+            ->set('form.youtube', 'not a youtube link')
             ->call('save')
-            ->assertHasErrors('youtube');
+            ->assertHasErrors('form.youtube');
     }
 
     public function test_an_image_upload_is_stored(): void
@@ -74,8 +75,8 @@ class FeedTest extends TestCase
         $user = User::factory()->create();
 
         Livewire::actingAs($user)
-            ->test(Feed::class)
-            ->set('media', UploadedFile::fake()->image('photo.jpg'))
+            ->test(ComposePost::class)
+            ->set('form.media', UploadedFile::fake()->image('photo.jpg'))
             ->call('save')
             ->assertHasNoErrors();
 
@@ -90,8 +91,8 @@ class FeedTest extends TestCase
         $user = User::factory()->create();
 
         Livewire::actingAs($user)
-            ->test(Feed::class)
-            ->set('media', UploadedFile::fake()->create('clip.mp4', 100, 'video/mp4'))
+            ->test(ComposePost::class)
+            ->set('form.media', UploadedFile::fake()->create('clip.mp4', 100, 'video/mp4'))
             ->call('save')
             ->assertHasNoErrors();
 
@@ -139,8 +140,8 @@ class FeedTest extends TestCase
 
     public function test_guests_cannot_post(): void
     {
-        Livewire::test(Feed::class)
-            ->set('body', 'sneaky guest post')
+        Livewire::test(ComposePost::class)
+            ->set('form.body', 'sneaky guest post')
             ->call('save')
             ->assertForbidden();
 
@@ -152,9 +153,9 @@ class FeedTest extends TestCase
         $user = User::factory()->create();
 
         Livewire::actingAs($user)
-            ->test(Feed::class)
-            ->set('title', 'My Review')
-            ->set('body', 'Great book.')
+            ->test(ComposePost::class)
+            ->set('form.title', 'My Review')
+            ->set('form.body', 'Great book.')
             ->call('save')
             ->assertHasNoErrors();
 
@@ -167,8 +168,8 @@ class FeedTest extends TestCase
         $longBody = str_repeat('a', 10000);
 
         Livewire::actingAs($user)
-            ->test(Feed::class)
-            ->set('body', $longBody)
+            ->test(ComposePost::class)
+            ->set('form.body', $longBody)
             ->call('save')
             ->assertHasNoErrors();
 
@@ -178,9 +179,9 @@ class FeedTest extends TestCase
     public function test_body_over_10000_characters_is_rejected(): void
     {
         Livewire::actingAs(User::factory()->create())
-            ->test(Feed::class)
-            ->set('body', str_repeat('a', 10001))
+            ->test(ComposePost::class)
+            ->set('form.body', str_repeat('a', 10001))
             ->call('save')
-            ->assertHasErrors('body');
+            ->assertHasErrors('form.body');
     }
 }

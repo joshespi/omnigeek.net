@@ -3,7 +3,7 @@
 namespace App\Livewire\Concerns;
 
 use App\Models\Post;
-use Illuminate\Support\Facades\Storage;
+use App\Support\PostMediaHandler;
 
 trait HandlesPostDeletion
 {
@@ -11,9 +11,7 @@ trait HandlesPostDeletion
     {
         abort_unless($post->canDelete(auth()->user()), 403);
 
-        if ($post->media_path) {
-            Storage::disk('public')->delete($post->media_path);
-        }
+        PostMediaHandler::delete($post->media_path);
 
         $post->delete();
 
