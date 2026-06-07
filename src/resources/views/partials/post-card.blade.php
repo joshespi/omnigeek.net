@@ -35,6 +35,7 @@
     @endif
 
     <livewire:post-media-editor :post="$post" :key="'media-'.$post->id" />
+    <livewire:post-editor :post="$post" :key="'editor-'.$post->id" />
 
     @if ($post->youtube_id)
         <div class="aspect-video mt-2">

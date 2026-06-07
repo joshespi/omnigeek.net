@@ -39,6 +39,11 @@ class Post extends Model
         return $user && ($this->user_id === $user->id || $user->isAdmin());
     }
 
+    public function canEdit(?User $user): bool
+    {
+        return $user && $this->user_id === $user->id;
+    }
+
     public function preview(int $limit): ?string
     {
         return $this->title ?: ($this->body ? str($this->body)->limit($limit)->toString() : null);
