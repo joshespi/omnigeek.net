@@ -9,6 +9,3 @@ FROM nginx:alpine
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY src/public /var/www/html/public
 COPY --from=assets /app/public/build /var/www/html/public/build
-# nginx serves /storage; the public/storage symlink is gitignored so it never ships in the
-# build context. Bake it here so uploaded media in the shared storage volume is reachable.
-RUN ln -sf ../../storage/app/public /var/www/html/public/storage
