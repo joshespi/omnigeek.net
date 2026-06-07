@@ -8,7 +8,7 @@ RUN npm run build && test -f public/build/manifest.json || (echo "ERROR: Vite bu
 FROM composer:latest AS vendor
 WORKDIR /app
 COPY src/composer.json src/composer.lock ./
-RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist
+RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist --ignore-platform-req=ext-gd
 
 FROM php:8.5-fpm
 RUN apt-get update && apt-get install -y \
