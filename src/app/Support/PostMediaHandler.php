@@ -2,30 +2,30 @@
 
 namespace App\Support;
 
+use App\Models\Post;
+use App\Models\PostMedia;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
 
 class PostMediaHandler
 {
     /**
-     * @return array{path: string, type: string} the stored path and 'image'|'video'
+     * Store one uploaded file and attach it to the post.
+     *
+     * Pass $sortOrder to avoid a MAX(sort_order) query per file when attaching
+     * many in a loop; omit it for a single attach and it resolves from the DB.
      */
-    public static function store(UploadedFile $file): array
+    public static function attach(Post $post, UploadedFile $file, ?int $sortOrder = null): PostMedia
     {
         $isVideo = str_starts_with((string) $file->getMimeType(), 'video/');
 
-        return [
-            'path' => $isVideo
-                ? $file->store('uploads', 'public')
-                : ImageProcessor::compress($file, 'uploads', 1600),
-            'type' => $isVideo ? 'video' : 'image',
-        ];
-    }
+        $path = $isVideo
+            ? $file->store('uploads', 'public')
+            : ImageProcessor::compress($file, 'uploads', 1600);
 
-    public static function delete(?string $path): void
-    {
-        if ($path) {
-            Storage::disk('public')->delete($path);
-        }
+        return $post->media()->create([
+            'path'       => $path,
+            'type'       => $isVideo ? 'video' : 'image',
+            'sort_order' => $sortOrder ?? $post->media()->max('sort_order') + 1,
+        ]);
     }
 }

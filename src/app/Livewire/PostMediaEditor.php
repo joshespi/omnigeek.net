@@ -3,7 +3,10 @@
 namespace App\Livewire;
 
 use App\Models\Post;
+use App\Models\PostMedia;
 use App\Support\PostMediaHandler;
+use Illuminate\Support\Collection;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -16,34 +19,41 @@ class PostMediaEditor extends Component
 
     public bool $editContext = false;
 
-    public bool $editing = false;
+    #[Validate(['uploads' => 'array', 'uploads.*' => 'file|max:51200|mimes:jpg,jpeg,png,gif,webp,mp4,webm,mov'])]
+    public array $uploads = [];
 
-    #[Validate('required|file|max:51200|mimes:jpg,jpeg,png,gif,webp,mp4,webm,mov')]
-    public $replacement = null;
+    #[Computed]
+    public function items(): Collection
+    {
+        return $this->post->media;
+    }
 
-    public function replaceMedia(): void
+    public function addMedia(): void
     {
         abort_unless($this->post->canEdit(auth()->user()), 403);
 
         $this->validate();
 
-        PostMediaHandler::delete($this->post->media_path);
+        // Resolve the base order once instead of a MAX() query per file.
+        $sortOrder = (int) $this->post->media()->max('sort_order');
 
-        $stored = PostMediaHandler::store($this->replacement);
-        $this->post->update(['media_path' => $stored['path'], 'media_type' => $stored['type']]);
+        foreach ($this->uploads as $file) {
+            PostMediaHandler::attach($this->post, $file, ++$sortOrder);
+        }
 
-        $this->editing = false;
-        $this->reset('replacement');
+        $this->reset('uploads');
+        $this->post->refresh();
     }
 
-    public function removeMedia(): void
+    public function removeItem(int $id): void
     {
         abort_unless($this->post->canEdit(auth()->user()), 403);
 
-        PostMediaHandler::delete($this->post->media_path);
+        $item = PostMedia::findOrFail($id);
+        abort_unless($item->post_id === $this->post->id, 403);
 
-        $this->post->update(['media_path' => null, 'media_type' => null]);
-        $this->editing = false;
+        $item->delete();
+        $this->post->refresh();
     }
 
     public function render()

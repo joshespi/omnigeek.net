@@ -21,8 +21,6 @@ class PostFactory extends Factory
         return [
             'user_id' => User::factory(),
             'body' => fake()->sentence(),
-            'media_path' => null,
-            'media_type' => null,
             'youtube_id' => null,
         ];
     }

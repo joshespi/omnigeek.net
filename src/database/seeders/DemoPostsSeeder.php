@@ -93,10 +93,20 @@ class DemoPostsSeeder extends Seeder
         }
 
         foreach ($posts as $attrs) {
-            $tags = $attrs['tags'] ?? null;
-            unset($attrs['tags']);
+            $tags      = $attrs['tags'] ?? null;
+            $mediaPath = $attrs['media_path'] ?? null;
+            $mediaType = $attrs['media_type'] ?? null;
+            unset($attrs['tags'], $attrs['media_path'], $attrs['media_type']);
 
             $post = $user->posts()->create($attrs);
+
+            if ($mediaPath) {
+                $post->media()->create([
+                    'path'       => $mediaPath,
+                    'type'       => $mediaType ?? 'image',
+                    'sort_order' => 0,
+                ]);
+            }
 
             if ($tags) {
                 $post->tags()->sync(Tag::fromText($tags)->pluck('id'));

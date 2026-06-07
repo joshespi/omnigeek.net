@@ -4,7 +4,6 @@ namespace App\Livewire;
 
 use App\Livewire\Concerns\HandlesPostDeletion;
 use App\Models\Post;
-use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
 
 class ShowPost extends Component
@@ -15,7 +14,7 @@ class ShowPost extends Component
 
     public function mount(Post $post): void
     {
-        $this->post = $post->load('user', 'categories', 'tags');
+        $this->post = $post->load('user', 'categories', 'tags', 'media');
         $post->increment('view_count');
     }
 
@@ -30,9 +29,8 @@ class ShowPost extends Component
             ? str($this->post->body)->limit(160)->toString()
             : 'A post by '.$this->post->user->name.' on '.config('app.name').'.';
 
-        $image = $this->post->media_type === 'image' && $this->post->media_path
-            ? Storage::disk('public')->url($this->post->media_path)
-            : null;
+        $firstImage = $this->post->media->firstWhere('type', 'image');
+        $image = $firstImage?->url();
 
         return view('livewire.show-post')->layout('layouts.app', [
             'ogTitle'       => $this->post->user->name.' on '.config('app.name'),

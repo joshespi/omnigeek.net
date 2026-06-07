@@ -79,8 +79,8 @@
                                 <p class="text-sm text-gray-800 dark:text-gray-200 line-clamp-2 mb-1">{{ $post->body }}</p>
                             @endif
 
-                            @if ($post->media_path)
-                                <span class="text-xs text-gray-400">{{ $post->media_type === 'video' ? '▶ Video' : '🖼 Image' }}</span>
+                            @if ($post->media->isNotEmpty())
+                                <span class="text-xs text-gray-400">{{ $post->media->count() }} media ({{ $post->media->contains('type', 'video') ? 'incl. video' : 'images' }})</span>
                             @endif
 
                             @if ($post->youtube_id)

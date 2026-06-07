@@ -40,14 +40,22 @@ class SiteMediaTest extends TestCase
         Storage::disk('public')->assertExists(SiteMedia::LOGO);
     }
 
-    public function test_delete_removes_the_file_and_url_goes_null(): void
+    public function test_delete_removes_the_file_and_logo_url_goes_null(): void
     {
         Storage::fake('public');
-        SiteMedia::store(SiteMedia::OG_DEFAULT, UploadedFile::fake()->image('og.png', 1200, 630), 1200);
+        SiteMedia::store(SiteMedia::LOGO, UploadedFile::fake()->image('logo.png', 512, 512), 512);
 
-        SiteMedia::delete(SiteMedia::OG_DEFAULT);
+        SiteMedia::delete(SiteMedia::LOGO);
 
-        Storage::disk('public')->assertMissing(SiteMedia::OG_DEFAULT);
-        $this->assertNull(SiteMedia::ogDefaultUrl());
+        Storage::disk('public')->assertMissing(SiteMedia::LOGO);
+        $this->assertNull(SiteMedia::logoUrl());
+    }
+
+    public function test_og_default_url_falls_back_to_app_icon_when_unset(): void
+    {
+        Storage::fake('public');
+
+        // No uploaded OG image — should fall back to the bundled app icon, never null.
+        $this->assertStringContainsString('web-app-manifest-512x512.png', SiteMedia::ogDefaultUrl());
     }
 }

@@ -20,6 +20,19 @@ class User extends Authenticatable
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
+    protected static function booted(): void
+    {
+        // Delete posts in PHP (not DB FK cascade) so Post/PostMedia deleting events
+        // fire and remove their stored files; also drop this user's avatar.
+        static::deleting(function (User $user) {
+            $user->posts->each->delete();
+
+            if ($user->avatar_path) {
+                Storage::disk('public')->delete($user->avatar_path);
+            }
+        });
+    }
+
     /**
      * Get the attributes that should be cast.
      *

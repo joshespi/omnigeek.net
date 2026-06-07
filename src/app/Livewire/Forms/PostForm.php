@@ -41,7 +41,7 @@ class PostForm extends Form
         $this->publishedAt = $post->published_at ? $post->published_at->format('Y-m-d\TH:i') : '';
     }
 
-    public function save(?Post $post = null, mixed $media = null): Post
+    public function save(?Post $post = null, array $media = []): Post
     {
         $this->validate();
 
@@ -53,30 +53,31 @@ class PostForm extends Form
             ]);
         }
 
-        $hasExistingMedia = (bool) $post?->media_path;
+        $hasExistingMedia = $post && $post->media()->exists();
 
-        if (trim($this->body) === '' && ! $media && ! $hasExistingMedia && ! $youtubeId) {
+        if (trim($this->body) === '' && empty($media) && ! $hasExistingMedia && ! $youtubeId) {
             throw ValidationException::withMessages([
                 'form.body' => __('Write something, add media, or paste a YouTube link.'),
             ]);
         }
 
         $attributes = [
-            'title' => trim($this->title) ?: null,
-            'body' => trim($this->body) ?: null,
+            'title'      => trim($this->title) ?: null,
+            'body'       => trim($this->body) ?: null,
             'youtube_id' => $youtubeId,
             'published_at' => $this->publishedAt ? \Carbon\Carbon::parse($this->publishedAt) : null,
         ];
 
-        if ($media) {
-            $stored = PostMediaHandler::store($media);
-            $attributes['media_path'] = $stored['path'];
-            $attributes['media_type'] = $stored['type'];
-        }
-
         $post = $post
             ? tap($post)->update($attributes)
             : auth()->user()->posts()->create($attributes);
+
+        // Resolve base order once instead of a MAX() query per file.
+        $sortOrder = (int) $post->media()->max('sort_order');
+
+        foreach ($media as $file) {
+            PostMediaHandler::attach($post, $file, ++$sortOrder);
+        }
 
         $post->categories()->sync($this->selectedCategories);
         $post->tags()->sync(Tag::fromText($this->tags)->pluck('id'));

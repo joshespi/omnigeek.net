@@ -76,13 +76,15 @@ class FeedTest extends TestCase
 
         Livewire::actingAs($user)
             ->test(ComposePost::class)
-            ->set('media', UploadedFile::fake()->image('photo.jpg'))
+            ->set('media', [UploadedFile::fake()->image('photo.jpg')])
             ->call('save')
             ->assertHasNoErrors();
 
         $post = Post::first();
-        $this->assertSame('image', $post->media_type);
-        Storage::disk('public')->assertExists($post->media_path);
+        $media = $post->media()->first();
+        $this->assertNotNull($media);
+        $this->assertSame('image', $media->type);
+        Storage::disk('public')->assertExists($media->path);
     }
 
     public function test_a_video_upload_is_stored_untouched(): void
@@ -92,14 +94,16 @@ class FeedTest extends TestCase
 
         Livewire::actingAs($user)
             ->test(ComposePost::class)
-            ->set('media', UploadedFile::fake()->create('clip.mp4', 100, 'video/mp4'))
+            ->set('media', [UploadedFile::fake()->create('clip.mp4', 100, 'video/mp4')])
             ->call('save')
             ->assertHasNoErrors();
 
         $post = Post::first();
-        $this->assertSame('video', $post->media_type);
-        $this->assertStringEndsWith('.mp4', $post->media_path);
-        Storage::disk('public')->assertExists($post->media_path);
+        $media = $post->media()->first();
+        $this->assertNotNull($media);
+        $this->assertSame('video', $media->type);
+        $this->assertStringEndsWith('.mp4', $media->path);
+        Storage::disk('public')->assertExists($media->path);
     }
 
     public function test_a_user_can_delete_their_own_post(): void

@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Post;
+use App\Models\PostMedia;
 use App\Models\User;
 use Database\Seeders\DemoPostsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -19,13 +20,13 @@ class DemoPostsSeederTest extends TestCase
 
         $this->seed(DemoPostsSeeder::class);
 
-        $this->assertGreaterThanOrEqual(1, Post::whereNotNull('body')->whereNull('media_path')->whereNull('youtube_id')->count());
-        $this->assertGreaterThanOrEqual(1, Post::where('media_type', 'image')->count());
-        $this->assertGreaterThanOrEqual(1, Post::where('media_type', 'video')->count());
+        $this->assertGreaterThanOrEqual(1, Post::whereNotNull('body')->doesntHave('media')->whereNull('youtube_id')->count());
+        $this->assertGreaterThanOrEqual(1, PostMedia::where('type', 'image')->count());
+        $this->assertGreaterThanOrEqual(1, PostMedia::where('type', 'video')->count());
         $this->assertGreaterThanOrEqual(1, Post::whereNotNull('youtube_id')->count());
 
-        $image = Post::where('media_type', 'image')->first();
-        Storage::disk('public')->assertExists($image->media_path);
+        $image = PostMedia::where('type', 'image')->first();
+        Storage::disk('public')->assertExists($image->path);
     }
 
     public function test_it_seeds_multiple_geeks_with_bios(): void

@@ -16,8 +16,8 @@ class ComposePost extends Component
 
     public PostForm $form;
 
-    #[Validate('nullable|file|max:51200|mimes:jpg,jpeg,png,gif,webp,mp4,webm,mov')]
-    public $media = null;
+    #[Validate(['media' => 'array', 'media.*' => 'file|max:51200|mimes:jpg,jpeg,png,gif,webp,mp4,webm,mov'])]
+    public array $media = [];
 
     public bool $showPreview = false;
 
@@ -30,7 +30,7 @@ class ComposePost extends Component
     {
         abort_unless(auth()->check(), 403);
 
-        $this->validateOnly('media');
+        $this->validate(['media' => 'array', 'media.*' => 'file|max:51200|mimes:jpg,jpeg,png,gif,webp,mp4,webm,mov']);
 
         $post = $this->form->save(media: $this->media);
 

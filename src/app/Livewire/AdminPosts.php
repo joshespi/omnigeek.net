@@ -7,7 +7,6 @@ use App\Livewire\Forms\PostForm;
 use App\Models\ActivityLog;
 use App\Models\Category;
 use App\Models\Post;
-use App\Support\PostMediaHandler;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -23,7 +22,6 @@ class AdminPosts extends Component
         $label = $post->preview(80);
         $id = $post->id;
 
-        PostMediaHandler::delete($post->media_path);
         $post->delete();
 
         ActivityLog::record('post.delete', 'post', $id, $label);

@@ -7,23 +7,36 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Post extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'title', 'body', 'media_path', 'media_type', 'youtube_id', 'published_at'];
+    protected $fillable = ['user_id', 'title', 'body', 'youtube_id', 'published_at'];
 
     protected $casts = ['view_count' => 'integer', 'published_at' => 'datetime'];
+
+    protected static function booted(): void
+    {
+        // Delete children in PHP (not via DB FK cascade) so PostMedia::deleting
+        // fires for each and removes its stored file. Covers user-cascade deletes too.
+        static::deleting(fn (Post $post) => $post->media->each->delete());
+    }
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
+    public function media(): HasMany
+    {
+        return $this->hasMany(PostMedia::class)->orderBy('sort_order');
+    }
+
     public function scopeWithFeedRelations(Builder $query): Builder
     {
-        return $query->with('user', 'categories', 'tags');
+        return $query->with('user', 'categories', 'tags', 'media');
     }
 
     public function scopePublished(Builder $query): Builder

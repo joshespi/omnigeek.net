@@ -18,9 +18,6 @@ class PostEditor extends Component
 
     public PostForm $form;
 
-    #[Validate('nullable|file|max:51200|mimes:jpg,jpeg,png,gif,webp,mp4,webm,mov')]
-    public $media = null;
-
     public bool $editing = false;
 
     public bool $showPreview = false;
@@ -52,11 +49,8 @@ class PostEditor extends Component
     {
         abort_unless($this->post->canEdit(auth()->user()), 403);
 
-        $this->validateOnly('media');
+        $this->form->save($this->post);
 
-        $this->form->save($this->post, media: $this->media);
-
-        $this->reset('media');
         $this->editing = false;
         $this->showPreview = false;
     }
