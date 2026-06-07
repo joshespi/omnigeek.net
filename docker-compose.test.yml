@@ -1,9 +1,0 @@
-services:
-  test:
-    build:
-      context: .
-      dockerfile: Dockerfile.test
-    environment:
-      APP_ENV: testing
-      DB_CONNECTION: sqlite
-      DB_DATABASE: ":memory:"

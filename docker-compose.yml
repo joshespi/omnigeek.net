@@ -1,6 +1,8 @@
 services:
   app:
-    build: .
+    build:
+      context: .
+      target: prod
     env_file: .env
     volumes:
       - storage:/var/www/html/storage/app/public
@@ -12,7 +14,9 @@ services:
       - laravel_net
 
   worker:
-    build: .
+    build:
+      context: .
+      target: prod
     env_file: .env
     command: ["php", "artisan", "queue:work", "--sleep=3", "--tries=3", "--max-time=3600"]
     user: "1000"
@@ -26,7 +30,9 @@ services:
       - laravel_net
 
   scheduler:
-    build: .
+    build:
+      context: .
+      target: prod
     env_file: .env
     command: ["php", "artisan", "schedule:work"]
     user: "1000"

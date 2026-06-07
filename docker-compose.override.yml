@@ -1,5 +1,7 @@
 services:
   app:
+    build:
+      target: dev
     volumes:
       - ./src/resources:/var/www/html/resources
       - ./src/routes:/var/www/html/routes

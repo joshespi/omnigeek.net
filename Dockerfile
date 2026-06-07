@@ -5,12 +5,17 @@ RUN npm ci
 COPY src/ ./
 RUN npm run build && test -f public/build/manifest.json || (echo "ERROR: Vite build produced no manifest.json" && exit 1)
 
-FROM composer:latest AS vendor
+FROM composer:latest AS vendor-prod
 WORKDIR /app
 COPY src/composer.json src/composer.lock ./
 RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist --ignore-platform-req=ext-gd
 
-FROM php:8.5-fpm
+FROM composer:latest AS vendor-dev
+WORKDIR /app
+COPY src/composer.json src/composer.lock ./
+RUN composer install --no-scripts --no-autoloader --prefer-dist --ignore-platform-req=ext-gd
+
+FROM php:8.5-fpm AS base
 RUN apt-get update && apt-get install -y \
     git curl zip unzip libpng-dev libjpeg-dev libfreetype6-dev libonig-dev libxml2-dev libzip-dev libwebp-dev \
     && docker-php-ext-configure gd --with-jpeg --with-freetype --with-webp \
@@ -32,8 +37,14 @@ RUN sed -i 's/^user = www-data/user = 1000/; s/^group = www-data/group = 1000/' 
 WORKDIR /var/www/html
 
 COPY src/ ./
-COPY --from=vendor /app/vendor ./vendor
 COPY --from=assets /app/public/build ./public/build
 RUN mkdir -p bootstrap/cache storage/framework/cache storage/framework/sessions storage/framework/views storage/logs \
-    && composer dump-autoload --no-dev --optimize \
     && chown -R 1000:1000 storage bootstrap/cache
+
+FROM base AS prod
+COPY --from=vendor-prod /app/vendor ./vendor
+RUN composer dump-autoload --no-dev --optimize
+
+FROM base AS dev
+COPY --from=vendor-dev /app/vendor ./vendor
+RUN composer dump-autoload --optimize

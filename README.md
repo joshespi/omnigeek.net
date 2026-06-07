@@ -1,10 +1,10 @@
-# mini-feed
+# OmniGeek.net
 
-Small invite-only-to-post mini-blog (OmniGeek). Public to read; posting + accounts are invite-only. Laravel 13 + Livewire (Breeze), Dockerized.
+Small invite-only-to-post mini-blog (OmniGeek). Public to read; posting + accounts are invite-only.
 
 ## Stack
 
-Laravel 13 · PHP 8.5 (php-fpm) · Livewire 3 + Breeze · MariaDB 11.4 · nginx · Vite · Docker Compose.
+Laravel · PHP · Livewire · MariaDB · nginx · Vite · Docker Compose.
 
 App code in `src/`; Docker config (`Dockerfile`, `Dockerfile.nginx`, `docker-compose.yml`, `nginx.conf`) at repo root.
 
@@ -71,11 +71,11 @@ Geeks use `@omnigeek.test` / `password` — local demo accounts only.
 
 ## Local dev vs. production
 
-The `Dockerfile` builds a lean **prod** image (bakes `src/`, `composer install --no-dev`, compiled assets) — that's what deploys.
+The `Dockerfile` has two targets. **prod** (`composer install --no-dev`, no test toolchain) is what deploys — base compose pins `target: prod` for `app`, `worker`, `scheduler`. **dev** is the same image plus the `require-dev` packages and a dev autoloader (so `Tests\` resolves and `php artisan test` runs in-container).
 
-Locally, `docker-compose.override.yml` (auto-merged) bind-mounts `./src` into **both** `app` and `nginx`, so edits/`git pull` are live and `composer test` uses the host's dev `vendor`. Both containers need the mount — PHP reads the Vite manifest, nginx serves the files; mount only one and the hashes drift → 404/no CSS. Prod has no override file, so it runs the baked image. Same commands everywhere.
+Locally, `docker-compose.override.yml` (auto-merged) flips `app` to `target: dev` and bind-mounts `./src/resources` + `./src/routes` so view/route edits are live without a rebuild. Prod has no override file, so every service runs the lean prod image.
 
-Rebuild (`docker compose build`) only on Dockerfile/dependency changes. After a fresh clone: `docker compose exec -u 1000 app composer install` once.
+Rebuild (`docker compose build app`) only on Dockerfile/dependency changes — adding a Composer package, or editing PHP outside `resources`/`routes`, needs a rebuild to land in the image.
 
 Image compression uses [`intervention/image`](https://image.intervention.io/) v4 with the GD driver (GD is compiled into the image with JPEG/PNG/WebP support). The Dockerfile also sets PHP upload limits (`upload_max_filesize=64M`, `post_max_size=72M`, `memory_limit=256M`) and nginx `client_max_body_size 72M` — change both together if you need a different cap.
 
@@ -89,12 +89,12 @@ docker run --rm -v "$PWD/src":/app -w /app node:24-alpine sh -c "npm install && 
 
 ```bash
 docker compose up -d                                       # start
-docker compose exec -u 1000 app composer test              # tests
+docker compose exec -u 1000 app php artisan test           # tests
 docker compose exec -u 1000 app php artisan queue:work     # process queued subscription emails
 docker run --rm -v "$PWD/src":/app -w /app node:24-alpine sh -c "npm run dev"   # asset watch
 ```
 
-Use `composer test`, not `php artisan test` — the script forces `APP_ENV=testing` (otherwise the container's OS `APP_ENV=local` shadows it and Livewire test macros don't register). Test overrides live in `src/.env.testing`.
+`php artisan test` runs in the `dev`-target `app` container (the prod image has no phpunit). `phpunit.xml` forces `APP_ENV=testing` (`force="true"`), so it overrides the container's OS `APP_ENV=local` that would otherwise shadow it and break Livewire's test-macro registration. Tests use an in-memory sqlite DB; further overrides live in `src/.env.testing`. `composer test` also works.
 
 ## Roadmap
 

@@ -69,14 +69,25 @@ class AdminPostsTest extends TestCase
             ->assertForbidden();
     }
 
-    public function test_admin_delete_button_visible_on_others_posts(): void
+    public function test_admin_delete_button_hidden_on_feed(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $other = User::factory()->create();
+        Post::factory()->for($other)->create(['body' => 'someone elses post']);
+
+        $this->actingAs($admin)
+            ->get(route('home'))
+            ->assertDontSee('Delete');
+    }
+
+    public function test_admin_delete_button_visible_on_post_detail(): void
     {
         $admin = User::factory()->admin()->create();
         $other = User::factory()->create();
         $post = Post::factory()->for($other)->create(['body' => 'someone elses post']);
 
         $this->actingAs($admin)
-            ->get(route('home'))
+            ->get(route('posts.show', $post))
             ->assertSee('Delete');
     }
 }
