@@ -39,6 +39,12 @@
             <x-input-error :messages="$errors->get('form.publishedAt')" class="mt-1" />
         </div>
 
+        <label class="flex items-center gap-2 mt-3 text-sm text-gray-600 dark:text-gray-400 cursor-pointer">
+            <input type="checkbox" wire:model="form.toMemes"
+                class="rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700 text-brand-600 focus:ring-brand-500" />
+            Post to Memes instead of the main feed
+        </label>
+
         <div class="flex items-center justify-between mt-4">
             <label class="text-sm text-gray-600 dark:text-gray-400 cursor-pointer">
                 <input type="file" wire:model="media" accept="image/*,video/*" multiple class="text-sm" />

@@ -63,6 +63,10 @@ new class extends Component
                         {{ __('Feed') }}
                     </x-nav-link>
 
+                    <x-nav-link :href="route('memes')" :active="request()->routeIs('memes')" wire:navigate>
+                        {{ __('Memes') }}
+                    </x-nav-link>
+
                     <x-nav-dropdown label="Geeks" routePrefix="geeks">
                         <x-slot name="items">
                             @forelse ($this->geeks as $geek)
@@ -195,6 +199,9 @@ new class extends Component
             </div>
             <x-responsive-nav-link :href="route('home')" :active="request()->routeIs('home')" wire:navigate>
                 {{ __('Feed') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('memes')" :active="request()->routeIs('memes')" wire:navigate>
+                {{ __('Memes') }}
             </x-responsive-nav-link>
 
             <div class="px-4 pt-2 text-xs font-semibold uppercase tracking-wide text-gray-400">{{ __('Geeks') }}</div>

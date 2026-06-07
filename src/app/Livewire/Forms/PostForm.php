@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Forms;
 
+use App\Enums\Feed;
 use App\Models\Post;
 use App\Models\Tag;
 use App\Support\PostMediaHandler;
@@ -29,6 +30,8 @@ class PostForm extends Form
     #[Validate('nullable|date')]
     public string $publishedAt = '';
 
+    public bool $toMemes = false;
+
     public function setFromPost(Post $post): void
     {
         $post->loadMissing('categories', 'tags');
@@ -39,6 +42,7 @@ class PostForm extends Form
         $this->selectedCategories = $post->categories->pluck('id')->map(intval(...))->all();
         $this->tags = $post->tags->pluck('name')->implode(' ');
         $this->publishedAt = $post->published_at ? $post->published_at->format('Y-m-d\TH:i') : '';
+        $this->toMemes = $post->feed === Feed::Memes;
     }
 
     public function save(?Post $post = null, array $media = []): Post
@@ -66,6 +70,7 @@ class PostForm extends Form
             'body'       => trim($this->body) ?: null,
             'youtube_id' => $youtubeId,
             'published_at' => $this->publishedAt ? \Carbon\Carbon::parse($this->publishedAt) : null,
+            'feed'       => $this->toMemes ? Feed::Memes : Feed::Main,
         ];
 
         $post = $post

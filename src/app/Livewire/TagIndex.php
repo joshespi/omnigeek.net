@@ -41,7 +41,7 @@ class TagIndex extends Component
             : Post::withFeedRelations()
                 ->whereHas('tags', fn ($q) => $q->whereIn('slug', $this->selected))
                 ->published()
-                ->orderByRaw('COALESCE(published_at, created_at) DESC')
+                ->latestForFeed()
                 ->paginate(15);
 
         return view('livewire.tag-index', [

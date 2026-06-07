@@ -31,7 +31,7 @@ class Search extends Component
     public function render()
     {
         $posts = strlen(trim($this->query)) >= 2
-            ? Post::withFeedRelations()->search($this->query)->published()->orderByRaw('COALESCE(published_at, created_at) DESC')->paginate(15)
+            ? Post::withFeedRelations()->search($this->query)->published()->latestForFeed()->paginate(15)
             : null;
 
         return view('livewire.search', ['posts' => $posts]);

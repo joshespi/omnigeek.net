@@ -9,7 +9,7 @@ use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-class Feed extends Component
+class MemeFeed extends Component
 {
     use HandlesPostDeletion;
     use WithPagination;
@@ -28,8 +28,8 @@ class Feed extends Component
     #[Layout('layouts.app')]
     public function render()
     {
-        return view('livewire.feed', [
-            'posts' => Post::withFeedRelations()->published()->latestForFeed()->paginate(15),
+        return view('livewire.meme-feed', [
+            'posts' => Post::withFeedRelations()->memes()->published()->latestForFeed()->paginate(15),
         ]);
     }
 }

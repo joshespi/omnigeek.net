@@ -4,6 +4,19 @@
         <a href="{{ route('admin.home') }}" wire:navigate class="text-sm text-brand-600 dark:text-brand-400 hover:underline">← Admin</a>
     </div>
 
+    <div class="flex gap-1 mb-4">
+        @foreach (['all' => 'All'] + \App\Enums\Feed::options() as $value => $label)
+            <button type="button" wire:click="$set('feedFilter', '{{ $value }}')"
+                @class([
+                    'px-3 py-1 text-sm rounded-md',
+                    'bg-brand-600 text-white' => $feedFilter === $value,
+                    'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600' => $feedFilter !== $value,
+                ])>
+                {{ $label }}
+            </button>
+        @endforeach
+    </div>
+
     <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg divide-y divide-gray-100 dark:divide-gray-700">
         @forelse ($posts as $post)
             <div wire:key="post-{{ $post->id }}" class="p-4">
@@ -72,7 +85,8 @@
                             </div>
 
                             @if ($post->title)
-                                <p class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-0.5">{{ $post->title }}</p>
+                                <a href="{{ route('posts.show', $post) }}" wire:navigate
+                                    class="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-0.5 hover:underline">{{ $post->title }}</a>
                             @endif
 
                             @if ($post->body)

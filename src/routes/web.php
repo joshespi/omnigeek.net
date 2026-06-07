@@ -8,6 +8,7 @@ use App\Livewire\AdminUsers;
 use App\Livewire\CategoryFeed;
 use App\Livewire\Feed;
 use App\Livewire\GeekProfile;
+use App\Livewire\MemeFeed;
 use App\Livewire\Search;
 use App\Livewire\ShowPost;
 use App\Livewire\Subscribe;
@@ -18,6 +19,7 @@ use App\Models\Subscription;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', Feed::class)->name('home');
+Route::get('memes', MemeFeed::class)->name('memes');
 Route::get('search', Search::class)->name('search');
 Route::get('post/{post}', ShowPost::class)->name('posts.show');
 Route::get('geeks/{user}', GeekProfile::class)->name('geeks.show');

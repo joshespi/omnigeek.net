@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Enums\Feed;
 use App\Jobs\NotifySubscribersOfNewPost;
 use App\Livewire\Forms\PostForm;
 use App\Models\Category;
@@ -34,7 +35,10 @@ class ComposePost extends Component
 
         $post = $this->form->save(media: $this->media);
 
-        NotifySubscribersOfNewPost::dispatch($post);
+        // Memes are low-signal junk — never email subscribers about them.
+        if ($post->feed === Feed::Main) {
+            NotifySubscribersOfNewPost::dispatch($post);
+        }
 
         $this->reset('media');
         $this->form->reset();

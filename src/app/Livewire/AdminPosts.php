@@ -2,18 +2,29 @@
 
 namespace App\Livewire;
 
+use App\Enums\Feed;
 use App\Livewire\Concerns\HandlesPostDeletion;
 use App\Livewire\Forms\PostForm;
 use App\Models\ActivityLog;
 use App\Models\Category;
 use App\Models\Post;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 
 class AdminPosts extends Component
 {
     use HandlesPostDeletion, WithPagination;
+
+    // 'all' | 'main' | 'memes' — admin feed filter.
+    #[Url]
+    public string $feedFilter = 'all';
+
+    public function updatingFeedFilter(): void
+    {
+        $this->resetPage();
+    }
 
     public function deletePost(Post $post): void
     {
@@ -52,7 +63,7 @@ class AdminPosts extends Component
     {
         $this->authorize('admin');
 
-        $post = Post::findOrFail($this->editingId);
+        $post = Post::anyFeed()->findOrFail($this->editingId);
         $this->form->save($post);
 
         ActivityLog::record('post.update', 'post', $post->id, $post->preview(80));
@@ -72,8 +83,15 @@ class AdminPosts extends Component
     {
         $this->authorize('admin');
 
+        $query = Post::withFeedRelations()->latestForFeed();
+
+        // 'all' (or any unknown value) → every feed; a valid enum value → just that feed.
+        $query = ($feed = Feed::tryFrom($this->feedFilter))
+            ? $query->ofFeed($feed)
+            : $query->anyFeed();
+
         return view('livewire.admin-posts', [
-            'posts' => Post::withFeedRelations()->orderByRaw('COALESCE(published_at, created_at) DESC')->paginate(25),
+            'posts' => $query->paginate(25),
             'categories' => $this->editingId ? Category::orderBy('name')->get() : collect(),
         ]);
     }

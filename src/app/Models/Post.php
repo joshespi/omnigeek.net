@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\Feed;
+use App\Models\Scopes\MainFeedScope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -13,15 +15,31 @@ class Post extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'title', 'body', 'youtube_id', 'published_at'];
+    protected $fillable = ['user_id', 'title', 'body', 'youtube_id', 'published_at', 'feed'];
 
-    protected $casts = ['view_count' => 'integer', 'published_at' => 'datetime'];
+    protected $casts = ['view_count' => 'integer', 'published_at' => 'datetime', 'feed' => Feed::class];
+
+    // Mirror the DB default so a freshly created model reports its feed without a refresh.
+    protected $attributes = ['feed' => Feed::Main->value];
 
     protected static function booted(): void
     {
+        // Lists default to the main feed; memes opt in. Single-post resolution
+        // overrides this (see resolveRouteBinding) so shared meme URLs still work.
+        static::addGlobalScope(new MainFeedScope);
+
         // Delete children in PHP (not via DB FK cascade) so PostMedia::deleting
         // fires for each and removes its stored file. Covers user-cascade deletes too.
         static::deleting(fn (Post $post) => $post->media->each->delete());
+    }
+
+    // Route + Livewire model binding resolve a specific post by key — never hide
+    // a meme there, or shared meme URLs and meme deletion would 404.
+    public function resolveRouteBinding($value, $field = null)
+    {
+        return $this->resolveRouteBindingQuery($this, $value, $field)
+            ->withoutGlobalScope(MainFeedScope::class)
+            ->first();
     }
 
     public function user(): BelongsTo
@@ -44,6 +62,30 @@ class Post extends Model
         return $query->where(function (Builder $q) {
             $q->whereNull('published_at')->orWhere('published_at', '<=', now());
         });
+    }
+
+    // Drop the feed filter entirely — admin views that list every post.
+    public function scopeAnyFeed(Builder $query): Builder
+    {
+        return $query->withoutGlobalScope(MainFeedScope::class);
+    }
+
+    // Filter to a specific feed regardless of the default scope.
+    public function scopeOfFeed(Builder $query, Feed $feed): Builder
+    {
+        return $query->anyFeed()->where('feed', $feed->value);
+    }
+
+    // Swap the default main-feed scope for the memes feed (the /memes page).
+    public function scopeMemes(Builder $query): Builder
+    {
+        return $query->ofFeed(Feed::Memes);
+    }
+
+    // Shared feed ordering: scheduled posts sort by publish date, others by creation.
+    public function scopeLatestForFeed(Builder $query): Builder
+    {
+        return $query->orderByRaw('COALESCE(published_at, created_at) DESC');
     }
 
     public function displayDate(): \Illuminate\Support\Carbon

@@ -1,9 +1,9 @@
-@props(['posts', 'empty' => 'No posts yet.'])
+@props(['posts', 'empty' => 'No posts yet.', 'deletable' => false])
 
 <div class="space-y-4">
     @forelse ($posts as $post)
         <div wire:key="post-{{ $post->id }}">
-            @include('partials.post-card', ['post' => $post])
+            @include('partials.post-card', ['post' => $post, 'deletable' => $deletable])
         </div>
     @empty
         <p class="text-center text-gray-500">{{ $empty }}</p>

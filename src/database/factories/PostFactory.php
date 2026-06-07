@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\Feed;
 use App\Models\Post;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -22,6 +23,12 @@ class PostFactory extends Factory
             'user_id' => User::factory(),
             'body' => fake()->sentence(),
             'youtube_id' => null,
+            // feed defaults to 'main' via the DB default + model $attributes.
         ];
+    }
+
+    public function memes(): static
+    {
+        return $this->state(['feed' => Feed::Memes->value]);
     }
 }

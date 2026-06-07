@@ -30,6 +30,20 @@ class AdminPostsTest extends TestCase
             ->assertOk();
     }
 
+    public function test_admin_can_filter_to_memes_only(): void
+    {
+        Post::factory()->create(['body' => 'main feed post']);
+        Post::factory()->memes()->create(['body' => 'meme feed post']);
+
+        Livewire::actingAs(User::factory()->admin()->create())
+            ->test(\App\Livewire\AdminPosts::class)
+            ->assertSee('main feed post')   // 'all' default shows both
+            ->assertSee('meme feed post')
+            ->set('feedFilter', 'memes')
+            ->assertSee('meme feed post')
+            ->assertDontSee('main feed post');
+    }
+
     public function test_admin_can_delete_another_users_post(): void
     {
         $owner = User::factory()->create();

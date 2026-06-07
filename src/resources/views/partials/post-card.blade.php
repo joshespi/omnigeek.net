@@ -1,4 +1,10 @@
-@props(['post', 'full' => false])
+@props(['post', 'full' => false, 'deletable' => null])
+
+@php
+    // Delete button shows on full post pages and anywhere explicitly marked deletable
+    // (e.g. the memes feed), without forcing the rest of the "full" layout.
+    $showDelete = $deletable ?? $full;
+@endphp
 
 <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-4">
     <div class="flex items-center justify-between mb-2">
@@ -11,7 +17,7 @@
                     class="text-gray-400 text-sm hover:underline">· {{ $post->displayDate()->diffForHumans() }}</a>
             </div>
         </div>
-        @if ($full && $post->canDelete(auth()->user()))
+        @if ($showDelete && $post->canDelete(auth()->user()))
             <button wire:click="deletePost({{ $post->id }})"
                 wire:confirm="Delete this post?"
                 class="text-gray-400 hover:text-red-600 text-sm">Delete</button>
