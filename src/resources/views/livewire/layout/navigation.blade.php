@@ -117,10 +117,10 @@ new class extends Component
 
             <!-- Settings Dropdown -->
             <div class="hidden sm:flex sm:items-center sm:ms-6 gap-3">
-                <form action="{{ route('search') }}" method="GET" wire:navigate class="flex items-center">
+                <form action="{{ route('search') }}" method="GET" class="flex items-center">
                     <input type="search" name="q" placeholder="Search…"
                         value="{{ request('q') }}"
-                        class="w-36 text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:border-brand-500 focus:ring-brand-500 py-1 px-2 focus:w-48 transition-all" />
+                        class="w-44 text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:border-brand-500 focus:ring-brand-500 py-1 px-2" />
                 </form>
                 <a href="{{ route('subscribe') }}" wire:navigate class="text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">{{ __('Subscribe') }}</a>
                 <x-theme-toggle />
