@@ -5,7 +5,7 @@
                 class="w-full mb-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:border-brand-500 focus:ring-brand-500 text-sm font-medium" />
             <x-input-error :messages="$errors->get('form.title')" class="mt-1" />
 
-            <x-markdown-editor model="form.body" :body="$form->body" :show-preview="$showPreview" :rows="8" />
+            <x-markdown-editor model="form.body" :body="$form->body" :show-preview="$showPreview" :rows="14" />
             <x-input-error :messages="$errors->get('form.body')" class="mt-1" />
 
             <input type="text" wire:model="form.youtube" placeholder="YouTube link (optional)"
