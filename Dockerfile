@@ -34,6 +34,7 @@ RUN { \
 WORKDIR /var/www/html
 
 COPY src/ ./
+COPY .env ./
 COPY --from=assets /app/public/build ./public/build
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh \
