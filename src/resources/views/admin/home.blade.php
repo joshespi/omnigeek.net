@@ -23,6 +23,11 @@
                 <div class="font-medium text-gray-900 dark:text-gray-100">Users</div>
                 <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Manage accounts, send invite links, toggle admin.</p>
             </a>
+            <a href="{{ route('admin.activity') }}" wire:navigate
+                class="block bg-white dark:bg-gray-800 shadow-sm rounded-lg p-5 hover:shadow transition">
+                <div class="font-medium text-gray-900 dark:text-gray-100">Activity Log</div>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Audit trail of admin actions across posts, users, and categories.</p>
+            </a>
         </div>
     </div>
 </x-app-layout>

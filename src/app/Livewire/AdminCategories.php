@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Models\ActivityLog;
 use App\Models\Category;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
@@ -21,7 +22,9 @@ class AdminCategories extends Component
 
         $this->validate(['name' => ['required', 'string', 'max:255', 'unique:categories,name']]);
 
-        Category::create(['name' => $this->name]);
+        $category = Category::create(['name' => $this->name]);
+
+        ActivityLog::record('category.create', 'category', $category->id, $category->name);
 
         $this->reset('name');
     }
@@ -44,12 +47,16 @@ class AdminCategories extends Component
 
         $category->update(['name' => $this->editingName]);
 
+        ActivityLog::record('category.update', 'category', $category->id, $this->editingName);
+
         $this->reset('editingId', 'editingName');
     }
 
     public function delete(Category $category): void
     {
         $this->authorize('admin');
+
+        ActivityLog::record('category.delete', 'category', $category->id, $category->name);
 
         $category->delete();
     }

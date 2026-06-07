@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Models\ActivityLog;
 use App\Models\Invite;
 use App\Models\User;
 use Illuminate\Validation\Rule;
@@ -70,6 +71,8 @@ class AdminUsers extends Component
             'bio' => $this->editingBio ?: null,
         ]);
 
+        ActivityLog::record('user.update', 'user', $user->id, $user->name);
+
         $this->cancelEdit();
     }
 
@@ -84,6 +87,8 @@ class AdminUsers extends Component
 
         abort_if($user->id === auth()->id(), 403, 'Cannot delete your own account here.');
 
+        ActivityLog::record('user.delete', 'user', $user->id, $user->name);
+
         $user->delete();
     }
 
@@ -94,6 +99,8 @@ class AdminUsers extends Component
         abort_if($user->id === auth()->id(), 403, 'Cannot change your own admin status.');
 
         $user->update(['is_admin' => ! $user->is_admin]);
+
+        ActivityLog::record('user.toggle_admin', 'user', $user->id, $user->name, ['is_admin' => $user->is_admin]);
     }
 
     #[Layout('layouts.app')]
