@@ -2,14 +2,14 @@
 
 namespace App\Livewire;
 
-use App\Livewire\Concerns\HandlesPostDeletion;
+use App\Livewire\Concerns\HandlesPostModeration;
 use App\Models\User;
 use Livewire\Component;
 use Livewire\WithPagination;
 
 class GeekProfile extends Component
 {
-    use HandlesPostDeletion;
+    use HandlesPostModeration;
     use WithPagination;
 
     public User $user;

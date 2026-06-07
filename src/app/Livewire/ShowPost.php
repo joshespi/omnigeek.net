@@ -2,13 +2,14 @@
 
 namespace App\Livewire;
 
-use App\Livewire\Concerns\HandlesPostDeletion;
+use App\Enums\Feed;
+use App\Livewire\Concerns\HandlesPostModeration;
 use App\Models\Post;
 use Livewire\Component;
 
 class ShowPost extends Component
 {
-    use HandlesPostDeletion;
+    use HandlesPostModeration;
 
     public Post $post;
 
@@ -21,6 +22,14 @@ class ShowPost extends Component
     protected function afterDelete(): void
     {
         $this->redirect(route('home'), navigate: true);
+    }
+
+    protected function afterMove(Post $post, Feed $target): void
+    {
+        // The action updated a separate route-bound instance; mirror the new feed on
+        // our mounted post so the label/button flip on re-render — no query, no
+        // relation reload (refresh() would re-fetch all 4 eager-loaded relations).
+        $this->post->feed = $target;
     }
 
     public function render()

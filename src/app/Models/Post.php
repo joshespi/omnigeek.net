@@ -124,6 +124,12 @@ class Post extends Model
         return $user && $this->user_id === $user->id;
     }
 
+    // The feed a main post would move to, and vice versa.
+    public function oppositeFeed(): Feed
+    {
+        return $this->feed === Feed::Memes ? Feed::Main : Feed::Memes;
+    }
+
     public function preview(int $limit): ?string
     {
         return $this->title ?: ($this->body ? str($this->body)->limit($limit)->toString() : null);

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\Feed;
 use App\Livewire\ShowPost;
 use App\Models\Post;
 use App\Models\User;
@@ -46,5 +47,52 @@ class ShowPostTest extends TestCase
             ->assertForbidden();
 
         $this->assertModelExists($post);
+    }
+
+    public function test_an_author_can_move_a_main_post_to_memes(): void
+    {
+        $user = User::factory()->create();
+        $post = Post::factory()->for($user)->create();
+
+        Livewire::actingAs($user)
+            ->test(ShowPost::class, ['post' => $post])
+            ->call('moveToOtherFeed', $post);
+
+        $this->assertSame(Feed::Memes, $post->refresh()->feed);
+    }
+
+    public function test_moving_a_meme_sends_it_back_to_the_main_feed(): void
+    {
+        $user = User::factory()->create();
+        $post = Post::factory()->for($user)->memes()->create();
+
+        Livewire::actingAs($user)
+            ->test(ShowPost::class, ['post' => $post])
+            ->call('moveToOtherFeed', $post);
+
+        $this->assertSame(Feed::Main, $post->refresh()->feed);
+    }
+
+    public function test_an_admin_can_move_someone_elses_post(): void
+    {
+        $post = Post::factory()->create();
+
+        Livewire::actingAs(User::factory()->admin()->create())
+            ->test(ShowPost::class, ['post' => $post])
+            ->call('moveToOtherFeed', $post);
+
+        $this->assertSame(Feed::Memes, $post->refresh()->feed);
+    }
+
+    public function test_a_stranger_cannot_move_a_post(): void
+    {
+        $post = Post::factory()->create();
+
+        Livewire::actingAs(User::factory()->create())
+            ->test(ShowPost::class, ['post' => $post])
+            ->call('moveToOtherFeed', $post)
+            ->assertForbidden();
+
+        $this->assertSame(Feed::Main, $post->refresh()->feed);
     }
 }

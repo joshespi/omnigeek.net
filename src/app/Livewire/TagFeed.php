@@ -2,7 +2,7 @@
 
 namespace App\Livewire;
 
-use App\Livewire\Concerns\HandlesPostDeletion;
+use App\Livewire\Concerns\HandlesPostModeration;
 use App\Models\Tag;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -10,7 +10,7 @@ use Livewire\WithPagination;
 
 class TagFeed extends Component
 {
-    use HandlesPostDeletion;
+    use HandlesPostModeration;
     use WithPagination;
 
     public Tag $tag;

@@ -18,9 +18,17 @@
             </div>
         </div>
         @if ($showDelete && $post->canDelete(auth()->user()))
-            <button wire:click="deletePost({{ $post->id }})"
-                wire:confirm="Delete this post?"
-                class="text-gray-400 hover:text-red-600 text-sm">Delete</button>
+            <div class="flex items-center gap-3 text-sm">
+                @if ($full)
+                    @php $moveTarget = $post->oppositeFeed()->label(); @endphp
+                    <button wire:click="moveToOtherFeed({{ $post->id }})"
+                        wire:confirm="Move this post to the {{ $moveTarget }}?"
+                        class="text-gray-400 hover:text-brand-600">Move to {{ $moveTarget }}</button>
+                @endif
+                <button wire:click="deletePost({{ $post->id }})"
+                    wire:confirm="Delete this post?"
+                    class="text-gray-400 hover:text-red-600">Delete</button>
+            </div>
         @endif
     </div>
 

@@ -3,7 +3,7 @@
 namespace App\Livewire;
 
 use App\Enums\Feed;
-use App\Livewire\Concerns\HandlesPostDeletion;
+use App\Livewire\Concerns\HandlesPostModeration;
 use App\Livewire\Forms\PostForm;
 use App\Models\ActivityLog;
 use App\Models\Category;
@@ -15,7 +15,7 @@ use Livewire\WithPagination;
 
 class AdminPosts extends Component
 {
-    use HandlesPostDeletion, WithPagination;
+    use HandlesPostModeration, WithPagination;
 
     // 'all' | 'main' | 'memes' — admin feed filter.
     #[Url]

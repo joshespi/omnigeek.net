@@ -2,7 +2,7 @@
 
 namespace App\Livewire;
 
-use App\Livewire\Concerns\HandlesPostDeletion;
+use App\Livewire\Concerns\HandlesPostModeration;
 use App\Models\Post;
 use App\Models\Tag;
 use Livewire\Attributes\Layout;
@@ -12,7 +12,7 @@ use Livewire\WithPagination;
 
 class TagIndex extends Component
 {
-    use HandlesPostDeletion;
+    use HandlesPostModeration;
     use WithPagination;
 
     #[Url(as: 'tags')]

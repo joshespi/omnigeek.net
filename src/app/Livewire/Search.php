@@ -2,7 +2,7 @@
 
 namespace App\Livewire;
 
-use App\Livewire\Concerns\HandlesPostDeletion;
+use App\Livewire\Concerns\HandlesPostModeration;
 use App\Models\Post;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
@@ -11,7 +11,7 @@ use Livewire\WithPagination;
 
 class Search extends Component
 {
-    use HandlesPostDeletion;
+    use HandlesPostModeration;
     use WithPagination;
 
     #[Url(as: 'q')]

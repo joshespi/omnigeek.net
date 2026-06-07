@@ -2,7 +2,7 @@
 
 namespace App\Livewire;
 
-use App\Livewire\Concerns\HandlesPostDeletion;
+use App\Livewire\Concerns\HandlesPostModeration;
 use App\Models\Category;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -10,7 +10,7 @@ use Livewire\WithPagination;
 
 class CategoryFeed extends Component
 {
-    use HandlesPostDeletion;
+    use HandlesPostModeration;
     use WithPagination;
 
     public Category $category;

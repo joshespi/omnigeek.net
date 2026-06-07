@@ -63,10 +63,6 @@ new class extends Component
                         {{ __('Feed') }}
                     </x-nav-link>
 
-                    <x-nav-link :href="route('memes')" :active="request()->routeIs('memes')" wire:navigate>
-                        {{ __('Memes') }}
-                    </x-nav-link>
-
                     <x-nav-dropdown label="Geeks" routePrefix="geeks">
                         <x-slot name="items">
                             @forelse ($this->geeks as $geek)
@@ -96,6 +92,11 @@ new class extends Component
                             @empty
                                 <span class="block px-4 py-2 text-sm text-gray-400">No categories yet</span>
                             @endforelse
+                            <div class="border-t border-gray-100 dark:border-gray-600"></div>
+                            <a href="{{ route('memes') }}" wire:navigate
+                                class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600">
+                                Memes
+                            </a>
                         </x-slot>
                     </x-nav-dropdown>
 
@@ -200,9 +201,6 @@ new class extends Component
             <x-responsive-nav-link :href="route('home')" :active="request()->routeIs('home')" wire:navigate>
                 {{ __('Feed') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('memes')" :active="request()->routeIs('memes')" wire:navigate>
-                {{ __('Memes') }}
-            </x-responsive-nav-link>
 
             <div class="px-4 pt-2 text-xs font-semibold uppercase tracking-wide text-gray-400">{{ __('Geeks') }}</div>
             @foreach ($this->geeks as $geek)
@@ -220,6 +218,9 @@ new class extends Component
                     {{ $category->name }}
                 </x-responsive-nav-link>
             @endforeach
+            <x-responsive-nav-link :href="route('memes')" :active="request()->routeIs('memes')" wire:navigate>
+                {{ __('Memes') }}
+            </x-responsive-nav-link>
 
             <div class="px-4 pt-2 text-xs font-semibold uppercase tracking-wide text-gray-400">{{ __('Tags') }}</div>
             <x-responsive-nav-link :href="route('tags.index')" :active="request()->routeIs('tags.index')" wire:navigate>
