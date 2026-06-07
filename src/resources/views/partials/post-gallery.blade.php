@@ -22,6 +22,11 @@
         'grid-cols-1' => $count === 1,
         'grid-cols-2' => $count >= 2,
     ])>
+        @php
+            // A lone image shows uncropped at its natural ratio (capped height); tiles in a
+            // multi-image grid stay square-cropped so the grid reads cleanly.
+            $single = $count === 1;
+        @endphp
         @foreach ($items->take(4) as $index => $item)
             @php $isLast = $index === 3 && $count > 4; @endphp
             <button
@@ -30,12 +35,14 @@
                 @class([
                     'relative overflow-hidden bg-gray-200 dark:bg-gray-700',
                     'col-span-2' => $count === 3 && $index === 2,
-                    'aspect-square' => true,
+                    'aspect-square' => ! $single,
                 ])
                 x-on:click="show({{ $index }})"
             >
                 @if ($item->isVideo())
-                    <video src="{{ $item->url() }}" class="w-full h-full object-cover" muted preload="metadata"></video>
+                    <video src="{{ $item->url() }}"
+                        @class(['w-full', 'h-full object-cover' => ! $single, 'max-h-[85vh]' => $single])
+                        muted preload="metadata"></video>
                     <div class="absolute inset-0 flex items-center justify-center">
                         <div class="bg-black/50 rounded-full w-10 h-10 flex items-center justify-center">
                             <svg class="w-5 h-5 text-white ml-0.5" fill="currentColor" viewBox="0 0 20 20">
@@ -44,7 +51,8 @@
                         </div>
                     </div>
                 @else
-                    <img src="{{ $item->url() }}" alt="" class="w-full h-full object-cover" loading="lazy" />
+                    <img src="{{ $item->url() }}" alt="" loading="lazy"
+                        @class(['w-full', 'h-full object-cover' => ! $single, 'max-h-[85vh] object-contain' => $single]) />
                 @endif
 
                 {{-- "+N more" overlay on 4th tile --}}

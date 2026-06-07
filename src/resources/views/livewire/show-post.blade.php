@@ -1,4 +1,4 @@
-<div class="max-w-2xl mx-auto px-4 py-8">
+<div class="max-w-3xl mx-auto px-4 py-8">
     <a href="{{ route('home') }}" wire:navigate class="text-sm text-brand-600 dark:text-brand-400 hover:text-brand-500">← Back to feed</a>
 
     <div class="mt-4">
