@@ -1,8 +1,6 @@
 <?php
 
-use App\Support\ImageProcessor;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Livewire\Volt\Component;
 use Livewire\WithFileUploads;
 
@@ -18,15 +16,7 @@ new class extends Component
             'avatar' => ['required', 'image', 'max:5120'],
         ]);
 
-        $user = Auth::user();
-
-        if ($user->avatar_path) {
-            Storage::disk('public')->delete($user->avatar_path);
-        }
-
-        $user->forceFill([
-            'avatar_path' => ImageProcessor::compress($this->avatar, 'avatars', 512),
-        ])->save();
+        Auth::user()->setAvatar($this->avatar);
 
         $this->reset('avatar');
         $this->dispatch('avatar-updated');
@@ -34,12 +24,7 @@ new class extends Component
 
     public function removeAvatar(): void
     {
-        $user = Auth::user();
-
-        if ($user->avatar_path) {
-            Storage::disk('public')->delete($user->avatar_path);
-            $user->forceFill(['avatar_path' => null])->save();
-        }
+        Auth::user()->clearAvatar();
 
         $this->dispatch('avatar-updated');
     }

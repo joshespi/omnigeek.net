@@ -9,11 +9,12 @@ use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 use Livewire\WithPagination;
 
 class AdminUsers extends Component
 {
-    use WithPagination;
+    use WithFileUploads, WithPagination;
 
     #[Validate('nullable|email|max:255')]
     public string $inviteEmail = '';
@@ -27,6 +28,9 @@ class AdminUsers extends Component
     public string $editingName = '';
     public string $editingEmail = '';
     public string $editingBio = '';
+
+    #[Validate('nullable|image|max:5120')]
+    public $editingAvatar = null;
 
     public function sendInvite(): void
     {
@@ -63,6 +67,7 @@ class AdminUsers extends Component
             'editingName' => 'required|string|max:255',
             'editingEmail' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user)],
             'editingBio' => 'nullable|string|max:500',
+            'editingAvatar' => 'nullable|image|max:5120',
         ]);
 
         $user->update([
@@ -71,14 +76,27 @@ class AdminUsers extends Component
             'bio' => $this->editingBio ?: null,
         ]);
 
+        if ($this->editingAvatar) {
+            $user->setAvatar($this->editingAvatar);
+        }
+
         ActivityLog::record('user.update', 'user', $user->id, $user->name);
 
         $this->cancelEdit();
     }
 
+    public function removeAvatar(): void
+    {
+        $this->authorize('admin');
+
+        User::findOrFail($this->editingId)->clearAvatar();
+
+        $this->reset('editingAvatar');
+    }
+
     public function cancelEdit(): void
     {
-        $this->reset('editingId', 'editingName', 'editingEmail', 'editingBio');
+        $this->reset('editingId', 'editingName', 'editingEmail', 'editingBio', 'editingAvatar');
     }
 
     public function deleteUser(User $user): void

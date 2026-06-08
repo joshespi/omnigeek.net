@@ -57,8 +57,25 @@
                                 class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 shadow-sm focus:border-brand-500 focus:ring-brand-500 text-sm"></textarea>
                             <x-input-error :messages="$errors->get('editingBio')" class="mt-1" />
                         </div>
+                        <div>
+                            <x-input-label value="Avatar" />
+                            <div class="mt-1 flex items-center gap-3">
+                                @if ($editingAvatar && str_starts_with((string) $editingAvatar->getMimeType(), 'image/'))
+                                    <img src="{{ $editingAvatar->temporaryUrl() }}" class="h-12 w-12 rounded-full object-cover" alt="" />
+                                @else
+                                    <x-avatar :user="$user" size="md" />
+                                @endif
+                                <input type="file" wire:model="editingAvatar" accept="image/*" class="text-sm" />
+                                @if ($user->avatar_path)
+                                    <button type="button" wire:click="removeAvatar"
+                                        class="text-sm text-gray-500 hover:text-red-600">Remove</button>
+                                @endif
+                            </div>
+                            <div wire:loading wire:target="editingAvatar" class="text-xs text-gray-400 mt-1">Uploading…</div>
+                            <x-input-error :messages="$errors->get('editingAvatar')" class="mt-1" />
+                        </div>
                         <div class="flex items-center gap-3">
-                            <x-primary-button wire:click="update">Save</x-primary-button>
+                            <x-primary-button wire:click="update" wire:loading.attr="disabled" wire:target="editingAvatar,update">Save</x-primary-button>
                             <button wire:click="cancelEdit" type="button"
                                 class="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400">Cancel</button>
                         </div>

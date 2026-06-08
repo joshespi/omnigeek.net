@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Support\ImageProcessor;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -10,6 +11,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Storage;
 
@@ -62,6 +64,21 @@ class User extends Authenticatable
         return Attribute::get(fn () => $this->avatar_path
             ? Storage::disk('public')->url($this->avatar_path)
             : null);
+    }
+
+    // Replace the avatar: drop the old file, store a compressed copy, persist the path.
+    public function setAvatar(UploadedFile $file): void
+    {
+        $this->clearAvatar();
+        $this->forceFill(['avatar_path' => ImageProcessor::compress($file, 'avatars', 512)])->save();
+    }
+
+    public function clearAvatar(): void
+    {
+        if ($this->avatar_path) {
+            Storage::disk('public')->delete($this->avatar_path);
+            $this->forceFill(['avatar_path' => null])->save();
+        }
     }
 
     public function initials(): string
