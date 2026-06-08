@@ -1,13 +1,17 @@
 @props(['items', 'editContext' => false, 'post' => null])
 
-@php $count = $items->count(); @endphp
+@php
+    $count = $items->count();
+    $nsfw = (bool) ($post?->nsfw);
+@endphp
 
 <div
     x-data="{
         open: false,
         current: 0,
+        revealed: {{ \Illuminate\Support\Js::from(! $nsfw) }},
         items: {{ $items->map(fn($i) => ['url' => $i->url(), 'type' => $i->type])->toJson() }},
-        show(index) { this.current = index; this.open = true; },
+        show(index) { if (! this.revealed) return; this.current = index; this.open = true; },
         prev() { this.current = (this.current - 1 + this.items.length) % this.items.length; },
         next() { this.current = (this.current + 1) % this.items.length; },
     }"
@@ -17,11 +21,27 @@
     class="mt-2"
 >
     {{-- Grid --}}
-    <div @class([
-        'grid gap-1 rounded-lg overflow-hidden',
-        'grid-cols-1' => $count === 1,
-        'grid-cols-2' => $count >= 2,
-    ])>
+    <div class="relative">
+        @if ($nsfw)
+            {{-- NSFW gate: blur the grid until the viewer clicks to reveal. --}}
+            <button type="button" x-show="! revealed" x-on:click="revealed = true"
+                class="absolute inset-0 z-10 flex flex-col items-center justify-center gap-1 rounded-lg bg-black/70 text-white">
+                <span class="text-sm font-semibold tracking-wide">NSFW</span>
+                <span class="text-xs text-white/80">Click to reveal</span>
+            </button>
+        @endif
+        {{-- Blur is an inline style, not a Tailwind class: a `blur-*` class used only
+             inside this dynamic x-bind would be purged from the compiled CSS. --}}
+        <div
+            @if ($nsfw)
+                x-bind:style="revealed ? '' : 'filter: blur(28px);'"
+                x-bind:class="revealed ? '' : 'pointer-events-none select-none'"
+            @endif
+            @class([
+                'grid gap-1 rounded-lg overflow-hidden',
+                'grid-cols-1' => $count === 1,
+                'grid-cols-2' => $count >= 2,
+            ])>
         @php
             // A lone image shows uncropped at its natural ratio (capped height); tiles in a
             // multi-image grid stay square-cropped so the grid reads cleanly.
@@ -63,6 +83,7 @@
                 @endif
             </button>
         @endforeach
+    </div>
     </div>
 
     {{-- Delete buttons (edit context) --}}

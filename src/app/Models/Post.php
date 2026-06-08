@@ -15,12 +15,12 @@ class Post extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'title', 'body', 'youtube_id', 'published_at', 'feed'];
+    protected $fillable = ['user_id', 'title', 'body', 'youtube_id', 'published_at', 'feed', 'nsfw'];
 
-    protected $casts = ['view_count' => 'integer', 'published_at' => 'datetime', 'feed' => Feed::class];
+    protected $casts = ['view_count' => 'integer', 'published_at' => 'datetime', 'feed' => Feed::class, 'nsfw' => 'boolean'];
 
-    // Mirror the DB default so a freshly created model reports its feed without a refresh.
-    protected $attributes = ['feed' => Feed::Main->value];
+    // Mirror the DB defaults so a freshly created model reports them without a refresh.
+    protected $attributes = ['feed' => Feed::Main->value, 'nsfw' => false];
 
     protected static function booted(): void
     {
@@ -31,6 +31,14 @@ class Post extends Model
         // Delete children in PHP (not via DB FK cascade) so PostMedia::deleting
         // fires for each and removes its stored file. Covers user-cascade deletes too.
         static::deleting(fn (Post $post) => $post->media->each->delete());
+
+        // NSFW only applies to memes — enforce the invariant on every write path,
+        // not just the compose form, so a direct update can't mark a main post NSFW.
+        static::saving(function (Post $post) {
+            if ($post->feed !== Feed::Memes) {
+                $post->nsfw = false;
+            }
+        });
     }
 
     // Route + Livewire model binding resolve a specific post by key — never hide

@@ -31,4 +31,10 @@ class PostFactory extends Factory
     {
         return $this->state(['feed' => Feed::Memes->value]);
     }
+
+    public function nsfw(): static
+    {
+        // NSFW implies memes — compose memes() so the feed assignment lives in one place.
+        return $this->memes()->state(['nsfw' => true]);
+    }
 }

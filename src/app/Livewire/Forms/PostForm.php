@@ -33,6 +33,8 @@ class PostForm extends Form
 
     public bool $toMemes = false;
 
+    public bool $nsfw = false;
+
     public function setFromPost(Post $post): void
     {
         $post->loadMissing('categories', 'tags');
@@ -44,6 +46,7 @@ class PostForm extends Form
         $this->tags = $post->tags->pluck('name')->implode(' ');
         $this->publishedAt = $post->published_at ? $post->published_at->format('Y-m-d\TH:i') : '';
         $this->toMemes = $post->feed === Feed::Memes;
+        $this->nsfw = $post->nsfw;
     }
 
     public function save(?Post $post = null, array $media = []): Post
@@ -72,6 +75,8 @@ class PostForm extends Form
             'youtube_id' => $youtubeId,
             'published_at' => $this->publishedAt ? \Carbon\Carbon::parse($this->publishedAt) : null,
             'feed'       => $this->toMemes ? Feed::Memes : Feed::Main,
+            // NSFW only applies to memes — a main-feed post is never marked NSFW.
+            'nsfw'       => $this->toMemes && $this->nsfw,
         ];
 
         $isNew = ! $post;

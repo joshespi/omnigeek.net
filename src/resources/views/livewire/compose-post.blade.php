@@ -39,11 +39,20 @@
             <x-input-error :messages="$errors->get('form.publishedAt')" class="mt-1" />
         </div>
 
-        <label class="flex items-center gap-2 mt-3 text-sm text-gray-600 dark:text-gray-400 cursor-pointer">
-            <input type="checkbox" wire:model="form.toMemes"
-                class="rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700 text-brand-600 focus:ring-brand-500" />
-            Post to Memes instead of the main feed
-        </label>
+        {{-- Reveal the NSFW option client-side; no server round-trip just to toggle a checkbox. --}}
+        <div class="mt-3 space-y-2" x-data="{ toMemes: @js($form->toMemes) }">
+            <label class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 cursor-pointer">
+                <input type="checkbox" wire:model="form.toMemes" x-model="toMemes"
+                    class="rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700 text-brand-600 focus:ring-brand-500" />
+                Post to Memes instead of the main feed
+            </label>
+
+            <label x-show="toMemes" x-cloak class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 cursor-pointer ml-6">
+                <input type="checkbox" wire:model="form.nsfw"
+                    class="rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700 text-red-600 focus:ring-red-500" />
+                Mark as NSFW (blurred until revealed)
+            </label>
+        </div>
 
         <div class="flex items-center justify-between mt-4">
             <label class="text-sm text-gray-600 dark:text-gray-400 cursor-pointer">
