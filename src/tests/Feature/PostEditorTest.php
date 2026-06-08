@@ -50,6 +50,23 @@ class PostEditorTest extends TestCase
         $this->assertEqualsCanonicalizing(['rust', 'homelab'], $post->tags->pluck('name')->all());
     }
 
+    public function test_canceling_editing_resets_the_form_without_error(): void
+    {
+        $user = User::factory()->create();
+        $post = Post::factory()->for($user)->create(['body' => 'original']);
+
+        Livewire::actingAs($user)
+            ->test(PostEditor::class, ['post' => $post])
+            ->call('startEditing')
+            ->set('form.body', 'unsaved edit')
+            ->call('cancelEditing')
+            ->assertHasNoErrors()
+            ->assertSet('editing', false)
+            ->assertSet('showPreview', false);
+
+        $this->assertDatabaseHas('posts', ['id' => $post->id, 'body' => 'original']);
+    }
+
     public function test_a_non_owner_cannot_start_editing(): void
     {
         $owner = User::factory()->create();

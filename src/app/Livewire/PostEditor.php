@@ -7,14 +7,10 @@ use App\Models\Category;
 use App\Models\Post;
 use App\Models\Series;
 use App\Models\Tag;
-use Livewire\Attributes\Validate;
 use Livewire\Component;
-use Livewire\WithFileUploads;
 
 class PostEditor extends Component
 {
-    use WithFileUploads;
-
     public Post $post;
 
     public PostForm $form;
@@ -36,7 +32,6 @@ class PostEditor extends Component
     {
         $this->editing = false;
         $this->showPreview = false;
-        $this->reset('media');
         $this->form->reset();
         $this->resetValidation();
     }
