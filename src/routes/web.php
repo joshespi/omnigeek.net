@@ -10,6 +10,7 @@ use App\Livewire\Feed;
 use App\Livewire\GeekProfile;
 use App\Livewire\MemeFeed;
 use App\Livewire\Search;
+use App\Livewire\SeriesFeed;
 use App\Livewire\ShowPost;
 use App\Livewire\Subscribe;
 use App\Livewire\TagFeed;
@@ -31,6 +32,8 @@ Route::get('categories/{category}', CategoryFeed::class)->name('categories.show'
 
 Route::get('tags', TagIndex::class)->name('tags.index');
 Route::get('tags/{tag}', TagFeed::class)->name('tags.show');
+
+Route::get('series/{series}', SeriesFeed::class)->name('series.show');
 
 Route::get('subscribe', Subscribe::class)->name('subscribe');
 Route::get('subscribe/confirm/{token}', function (string $token) {

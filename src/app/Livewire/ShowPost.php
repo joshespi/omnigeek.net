@@ -15,8 +15,38 @@ class ShowPost extends Component
 
     public function mount(Post $post): void
     {
-        $this->post = $post->load('user', 'categories', 'tags', 'media');
+        $this->post = $post->load('user', 'categories', 'tags', 'media', 'series');
         $post->increment('view_count');
+    }
+
+    // Gather the post's series siblings (published only) plus its prev/next neighbours,
+    // so the single-post view can show "Part N of M" and let the reader walk the series.
+    protected function seriesContext(): ?array
+    {
+        if (! $this->post->series_id) {
+            return null;
+        }
+
+        $posts = $this->post->series
+            ->postsInOrder()
+            ->published()
+            ->get(['id', 'title', 'body', 'series_part', 'published_at', 'created_at']);
+
+        $index = $posts->search(fn (Post $p) => $p->id === $this->post->id);
+
+        // The current post is unpublished/scheduled — nothing meaningful to anchor against.
+        if ($index === false) {
+            return null;
+        }
+
+        return [
+            'series'   => $this->post->series,
+            'posts'    => $posts,
+            'position' => $index + 1,
+            'total'    => $posts->count(),
+            'prev'     => $index > 0 ? $posts->get($index - 1) : null,
+            'next'     => $posts->get($index + 1),
+        ];
     }
 
     protected function afterDelete(): void
@@ -41,7 +71,9 @@ class ShowPost extends Component
         $firstImage = $this->post->media->firstWhere('type', 'image');
         $image = $firstImage?->url();
 
-        return view('livewire.show-post')->layout('layouts.app', [
+        return view('livewire.show-post', [
+            'series' => $this->seriesContext(),
+        ])->layout('layouts.app', [
             'ogTitle'       => $this->post->user->name.' on '.config('app.name'),
             'ogDescription' => $description,
             'ogImage'       => $image,

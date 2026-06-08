@@ -15,9 +15,9 @@ class Post extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'title', 'body', 'youtube_id', 'published_at', 'feed', 'nsfw'];
+    protected $fillable = ['user_id', 'title', 'body', 'youtube_id', 'published_at', 'feed', 'nsfw', 'series_id', 'series_part'];
 
-    protected $casts = ['view_count' => 'integer', 'published_at' => 'datetime', 'feed' => Feed::class, 'nsfw' => 'boolean'];
+    protected $casts = ['view_count' => 'integer', 'published_at' => 'datetime', 'feed' => Feed::class, 'nsfw' => 'boolean', 'series_part' => 'integer'];
 
     // Mirror the DB defaults so a freshly created model reports them without a refresh.
     protected $attributes = ['feed' => Feed::Main->value, 'nsfw' => false];
@@ -32,11 +32,20 @@ class Post extends Model
         // fires for each and removes its stored file. Covers user-cascade deletes too.
         static::deleting(fn (Post $post) => $post->media->each->delete());
 
-        // NSFW only applies to memes — enforce the invariant on every write path,
-        // not just the compose form, so a direct update can't mark a main post NSFW.
+        // Feed-dependent invariants, enforced on every write path (not just the compose
+        // form) so a direct update — e.g. moveToOtherFeed() flipping the feed — can't
+        // leave inconsistent state. NSFW is meme-only; series are main-feed-only.
         static::saving(function (Post $post) {
-            if ($post->feed !== Feed::Memes) {
+            if ($post->feed === Feed::Memes) {
+                $post->series_id = null;
+                $post->series_part = null;
+            } else {
                 $post->nsfw = false;
+            }
+
+            // A part number is meaningless without a series to order within.
+            if (! $post->series_id) {
+                $post->series_part = null;
             }
         });
     }
@@ -60,9 +69,14 @@ class Post extends Model
         return $this->hasMany(PostMedia::class)->orderBy('sort_order');
     }
 
+    public function series(): BelongsTo
+    {
+        return $this->belongsTo(Series::class);
+    }
+
     public function scopeWithFeedRelations(Builder $query): Builder
     {
-        return $query->with('user', 'categories', 'tags', 'media');
+        return $query->with('user', 'categories', 'tags', 'media', 'series');
     }
 
     public function scopePublished(Builder $query): Builder

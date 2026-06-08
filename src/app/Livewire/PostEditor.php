@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Livewire\Forms\PostForm;
 use App\Models\Category;
 use App\Models\Post;
+use App\Models\Series;
 use App\Models\Tag;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
@@ -62,6 +63,7 @@ class PostEditor extends Component
             // edited at a time — so a 15-post feed runs these queries once on open, not 15x on load.
             'categories' => $this->editing ? Category::orderBy('name')->get() : collect(),
             'tagHints' => $this->editing ? Tag::orderBy('name')->pluck('name') : collect(),
+            'seriesHints' => $this->editing ? Series::orderBy('name')->pluck('name') : collect(),
         ]);
     }
 }

@@ -6,6 +6,7 @@ use App\Enums\Feed;
 use App\Jobs\NotifySubscribersOfNewPost;
 use App\Livewire\Forms\PostForm;
 use App\Models\Category;
+use App\Models\Series;
 use App\Models\Tag;
 use Livewire\Component;
 use Livewire\Attributes\Validate;
@@ -53,6 +54,7 @@ class ComposePost extends Component
         return view('livewire.compose-post', [
             'categories' => Category::orderBy('name')->get(),
             'tagHints' => Tag::orderBy('name')->pluck('name'),
+            'seriesHints' => Series::orderBy('name')->pluck('name'),
         ]);
     }
 }

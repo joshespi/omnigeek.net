@@ -5,5 +5,9 @@
         @include('partials.post-card', ['post' => $post, 'full' => true])
     </div>
 
+    @if ($series)
+        @include('partials.post-series', array_merge($series, ['current' => $post]))
+    @endif
+
     @include('partials.post-share', ['post' => $post])
 </div>

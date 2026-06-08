@@ -5,6 +5,7 @@ namespace App\Livewire\Forms;
 use App\Enums\Feed;
 use App\Models\ActivityLog;
 use App\Models\Post;
+use App\Models\Series;
 use App\Models\Tag;
 use App\Support\PostMediaHandler;
 use Illuminate\Validation\ValidationException;
@@ -28,6 +29,12 @@ class PostForm extends Form
     #[Validate('nullable|string|max:255')]
     public string $tags = '';
 
+    #[Validate('nullable|string|max:255')]
+    public string $series = '';
+
+    #[Validate('nullable|integer|min:1|max:999')]
+    public ?int $seriesPart = null;
+
     #[Validate('nullable|date')]
     public string $publishedAt = '';
 
@@ -37,13 +44,15 @@ class PostForm extends Form
 
     public function setFromPost(Post $post): void
     {
-        $post->loadMissing('categories', 'tags');
+        $post->loadMissing('categories', 'tags', 'series');
 
         $this->title = $post->title ?? '';
         $this->body = $post->body ?? '';
         $this->youtube = $post->youtube_id ?? '';
         $this->selectedCategories = $post->categories->pluck('id')->map(intval(...))->all();
         $this->tags = $post->tags->pluck('name')->implode(' ');
+        $this->series = $post->series?->name ?? '';
+        $this->seriesPart = $post->series_part;
         $this->publishedAt = $post->published_at ? $post->published_at->format('Y-m-d\TH:i') : '';
         $this->toMemes = $post->feed === Feed::Memes;
         $this->nsfw = $post->nsfw;
@@ -69,6 +78,11 @@ class PostForm extends Form
             ]);
         }
 
+        // Series group main-feed reads, not memes — resolve only when staying on the main feed.
+        $series = (! $this->toMemes && trim($this->series) !== '')
+            ? Series::firstByName($this->series)
+            : null;
+
         $attributes = [
             'title'      => trim($this->title) ?: null,
             'body'       => trim($this->body) ?: null,
@@ -77,6 +91,8 @@ class PostForm extends Form
             'feed'       => $this->toMemes ? Feed::Memes : Feed::Main,
             // NSFW only applies to memes — a main-feed post is never marked NSFW.
             'nsfw'       => $this->toMemes && $this->nsfw,
+            'series_id'   => $series?->id,
+            'series_part' => $series ? $this->seriesPart : null,
         ];
 
         $isNew = ! $post;

@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Enums\Feed;
 use App\Models\Post;
+use App\Models\Series;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -36,5 +37,10 @@ class PostFactory extends Factory
     {
         // NSFW implies memes — compose memes() so the feed assignment lives in one place.
         return $this->memes()->state(['nsfw' => true]);
+    }
+
+    public function inSeries(Series $series, ?int $part = null): static
+    {
+        return $this->state(['series_id' => $series->id, 'series_part' => $part]);
     }
 }

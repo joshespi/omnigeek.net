@@ -30,6 +30,8 @@
             @endif
             <x-input-error :messages="$errors->get('form.tags')" class="mt-1" />
 
+            <x-series-input datalist-id="series-hints-editor" :hints="$seriesHints" />
+
             <div class="mt-3">
                 <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Post date (leave blank to use original)</label>
                 <input type="datetime-local" wire:model="form.publishedAt"
