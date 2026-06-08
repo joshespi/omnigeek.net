@@ -5,12 +5,5 @@
         @include('partials.post-card', ['post' => $post, 'full' => true])
     </div>
 
-    <div class="mt-4" x-data="{ copied: false }">
-        <button type="button"
-            x-on:click="navigator.clipboard.writeText('{{ route('posts.show', $post) }}'); copied = true; setTimeout(() => copied = false, 1500)"
-            class="text-sm text-gray-500 hover:text-gray-700">
-            <span x-show="! copied">Copy link to this post</span>
-            <span x-show="copied" x-cloak class="text-green-600">Copied!</span>
-        </button>
-    </div>
+    @include('partials.post-share', ['post' => $post])
 </div>

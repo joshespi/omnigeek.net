@@ -21,7 +21,8 @@ class ShowPostTest extends TestCase
         $this->get(route('posts.show', $post))
             ->assertOk()
             ->assertSee('A shareable post')
-            ->assertSee('Copy link to this post');
+            ->assertSee('Copy link to share elsewhere')
+            ->assertSee('Share on Bluesky');
     }
 
     public function test_an_author_can_delete_from_the_post_page(): void
