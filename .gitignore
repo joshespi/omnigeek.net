@@ -8,5 +8,6 @@
 /src/public/uploads
 .DS_Store
 db_data/
-# src/storage/framework/testing/disksdocker-compose.override.yml
 node_modules/
+# Throwaway Playwright/verification probe scripts dropped at repo root
+/*.mjs
