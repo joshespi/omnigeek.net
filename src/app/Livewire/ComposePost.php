@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Enums\Feed;
 use App\Jobs\NotifySubscribersOfNewPost;
+use App\Livewire\Concerns\HandlesInlineImageUpload;
 use App\Livewire\Forms\PostForm;
 use App\Models\Category;
 use App\Models\Series;
@@ -14,7 +15,7 @@ use Livewire\WithFileUploads;
 
 class ComposePost extends Component
 {
-    use WithFileUploads;
+    use HandlesInlineImageUpload, WithFileUploads;
 
     public PostForm $form;
 

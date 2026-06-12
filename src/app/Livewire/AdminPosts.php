@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Enums\Feed;
+use App\Livewire\Concerns\HandlesInlineImageUpload;
 use App\Livewire\Concerns\HandlesPostModeration;
 use App\Livewire\Forms\PostForm;
 use App\Models\ActivityLog;
@@ -11,11 +12,12 @@ use App\Models\Post;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 use Livewire\WithPagination;
 
 class AdminPosts extends Component
 {
-    use HandlesPostModeration, WithPagination;
+    use HandlesInlineImageUpload, HandlesPostModeration, WithFileUploads, WithPagination;
 
     // 'all' | 'main' | 'memes' — admin feed filter.
     #[Url]

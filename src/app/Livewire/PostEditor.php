@@ -2,15 +2,19 @@
 
 namespace App\Livewire;
 
+use App\Livewire\Concerns\HandlesInlineImageUpload;
 use App\Livewire\Forms\PostForm;
 use App\Models\Category;
 use App\Models\Post;
 use App\Models\Series;
 use App\Models\Tag;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 class PostEditor extends Component
 {
+    use HandlesInlineImageUpload, WithFileUploads;
+
     public Post $post;
 
     public PostForm $form;

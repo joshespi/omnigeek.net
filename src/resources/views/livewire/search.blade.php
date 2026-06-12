@@ -1,4 +1,4 @@
-<div class="max-w-3xl mx-auto px-4 py-8">
+<div class="max-w-4xl mx-auto px-4 py-8">
     <div class="mb-6">
         <input type="search" wire:model.live.debounce.300ms="query"
             placeholder="Search posts…"

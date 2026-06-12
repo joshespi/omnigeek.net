@@ -1,3 +1,9 @@
+# Dev only: uploads land on the host so they're visible/inspectable in the repo. Prod
+# keeps the named `storage` volume from docker-compose.yml. The PHP services share one
+# mount definition; nginx mounts the same host dir at its own target so the writer and
+# server agree (a divergent copy would 404/403).
+x-storage-mount: &storage-mount ./src/storage/app/public:/var/www/html/storage/app/public
+
 services:
   app:
     build:
@@ -5,3 +11,16 @@ services:
     volumes:
       - ./src/resources:/var/www/html/resources
       - ./src/routes:/var/www/html/routes
+      - *storage-mount
+
+  worker:
+    volumes:
+      - *storage-mount
+
+  scheduler:
+    volumes:
+      - *storage-mount
+
+  nginx:
+    volumes:
+      - ./src/storage/app/public:/var/www/html/public/storage

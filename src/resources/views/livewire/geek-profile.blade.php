@@ -1,4 +1,4 @@
-<div class="max-w-3xl mx-auto px-4 py-8">
+<div class="max-w-4xl mx-auto px-4 py-8">
     <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6 mb-6">
         <div class="flex items-center gap-4">
             <x-avatar :user="$user" size="lg" />

@@ -1,4 +1,4 @@
-<div class="max-w-3xl mx-auto px-4 py-8"
+<div class="max-w-4xl mx-auto px-4 py-8"
     x-data="{ entered: localStorage.getItem('memes-nsfw-ok') === '1' }">
 
     {{-- NSFW gate: a solid screen that hides the feed until accepted (shown once per browser). --}}

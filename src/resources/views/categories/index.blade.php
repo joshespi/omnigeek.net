@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="max-w-3xl mx-auto px-4 py-8">
+    <div class="max-w-4xl mx-auto px-4 py-8">
         <h1 class="text-xl font-display font-bold text-gray-900 dark:text-gray-100 mb-6">Categories</h1>
 
         <div class="grid gap-3 sm:grid-cols-2">
