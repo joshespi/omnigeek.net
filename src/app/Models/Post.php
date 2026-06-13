@@ -143,7 +143,7 @@ class Post extends Model
 
     public function canEdit(?User $user): bool
     {
-        return $user && $this->user_id === $user->id;
+        return $user && ($this->user_id === $user->id || $user->isAdmin());
     }
 
     // The feed a main post would move to, and vice versa.

@@ -14,7 +14,7 @@
                 <button type="submit"
                     wire:loading.attr="disabled" wire:target="uploads,addMedia"
                     class="text-xs text-brand-600 dark:text-brand-400 hover:underline disabled:opacity-40 disabled:cursor-not-allowed">
-                    Add
+                    Upload
                 </button>
             </div>
             <div wire:loading wire:target="uploads" class="text-xs text-gray-400 mt-1">Uploading…</div>
