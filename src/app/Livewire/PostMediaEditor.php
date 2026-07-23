@@ -19,7 +19,7 @@ class PostMediaEditor extends Component
 
     public bool $editContext = false;
 
-    #[Validate(['uploads' => 'array', 'uploads.*' => 'file|max:51200|mimes:jpg,jpeg,png,gif,webp,mp4,webm,mov'])]
+    #[Validate(['uploads' => 'array', 'uploads.*' => PostMediaHandler::UPLOAD_RULE])]
     public array $uploads = [];
 
     #[Computed]
@@ -34,12 +34,7 @@ class PostMediaEditor extends Component
 
         $this->validate();
 
-        // Resolve the base order once instead of a MAX() query per file.
-        $sortOrder = (int) $this->post->media()->max('sort_order');
-
-        foreach ($this->uploads as $file) {
-            PostMediaHandler::attach($this->post, $file, ++$sortOrder);
-        }
+        PostMediaHandler::attachMany($this->post, $this->uploads);
 
         $this->reset('uploads');
         $this->post->refresh();

@@ -32,11 +32,15 @@ class SendDigest extends Command
 
         $cutoffFor = fn (Subscription $sub): Carbon => $sub->last_notified_at ?? $cadence->windowStart($now);
 
-        $candidates = Post::withFeedRelations()
+        // Only what wantsPost() (categories/tags) and the mail body (user) need —
+        // not the full withFeedRelations() set, which would bloat every queued mail.
+        $candidates = Post::with('user', 'categories', 'tags')
             ->where('created_at', '>', $subscribers->min($cutoffFor))
             ->latest()
             ->get();
 
+        // One subscriber's failure (bad email, transient DB error) must not abort the
+        // filter() and skip everyone after them — isolate and keep going.
         $sent = $subscribers->filter(function (Subscription $sub) use ($candidates, $cutoffFor, $cadence, $now) {
             $posts = $candidates
                 ->where('created_at', '>', $cutoffFor($sub))
@@ -47,12 +51,18 @@ class SendDigest extends Command
                 return false;
             }
 
-            Notification::route('mail', $sub->email)
-                ->notify(new DigestNotification($posts, $sub, $cadence));
+            try {
+                Notification::route('mail', $sub->email)
+                    ->notify(new DigestNotification($posts, $sub, $cadence));
 
-            $sub->update(['last_notified_at' => $now]);
+                $sub->update(['last_notified_at' => $now]);
 
-            return true;
+                return true;
+            } catch (\Throwable $e) {
+                report($e);
+
+                return false;
+            }
         })->count();
 
         $this->info("Digest queued for {$sent} subscriber(s).");

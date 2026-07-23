@@ -101,12 +101,7 @@ class PostForm extends Form
             ? tap($post)->update($attributes)
             : auth()->user()->posts()->create($attributes);
 
-        // Resolve base order once instead of a MAX() query per file.
-        $sortOrder = (int) $post->media()->max('sort_order');
-
-        foreach ($media as $file) {
-            PostMediaHandler::attach($post, $file, ++$sortOrder);
-        }
+        PostMediaHandler::attachMany($post, $media);
 
         $post->categories()->sync($this->selectedCategories);
         $post->tags()->sync(Tag::fromText($this->tags)->pluck('id'));

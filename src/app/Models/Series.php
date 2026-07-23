@@ -6,7 +6,6 @@ use App\Models\Concerns\HasSlug;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Str;
 
 class Series extends Model
 {
@@ -34,9 +33,6 @@ class Series extends Model
     // so two authors typing the same name land on the same series.
     public static function firstByName(string $name): self
     {
-        return static::firstOrCreate(
-            ['slug' => Str::slug($name)],
-            ['name' => trim($name)],
-        );
+        return static::firstOrCreateByName(trim($name));
     }
 }

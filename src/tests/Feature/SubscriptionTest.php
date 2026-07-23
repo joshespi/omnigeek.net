@@ -46,11 +46,20 @@ class SubscriptionTest extends TestCase
         $this->assertNotNull($sub->fresh()->confirmed_at);
     }
 
-    public function test_unsubscribe_link_deletes_the_subscription(): void
+    public function test_unsubscribe_link_shows_a_confirm_page_without_deleting(): void
     {
         $sub = Subscription::create(['email' => 'reader@example.com', 'confirmed_at' => now()]);
 
         $this->get(route('subscriptions.unsubscribe', $sub->token))->assertOk();
+
+        $this->assertModelExists($sub);
+    }
+
+    public function test_confirming_unsubscribe_deletes_the_subscription(): void
+    {
+        $sub = Subscription::create(['email' => 'reader@example.com', 'confirmed_at' => now()]);
+
+        $this->post(route('subscriptions.unsubscribe.confirm', $sub->token))->assertOk();
 
         $this->assertModelMissing($sub);
     }

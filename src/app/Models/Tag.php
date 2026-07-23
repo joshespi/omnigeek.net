@@ -40,6 +40,6 @@ class Tag extends Model
             ->map(fn ($name) => Str::lower($name))
             ->unique()
             ->reject(fn ($name) => $name === '')
-            ->map(fn ($name) => static::firstOrCreate(['slug' => Str::slug($name)], ['name' => $name]));
+            ->map(fn ($name) => static::firstOrCreateByName($name));
     }
 }

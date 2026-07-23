@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Support\ImageProcessor;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -25,9 +24,11 @@ class User extends Authenticatable
     protected static function booted(): void
     {
         // Delete posts in PHP (not DB FK cascade) so Post/PostMedia deleting events
-        // fire and remove their stored files; also drop this user's avatar.
+        // fire and remove their stored files; also drop this user's avatar. anyFeed()
+        // bypasses MainFeedScope — the plain posts() relation would skip memes, leaving
+        // them to the FK cascade, which deletes the rows without firing those events.
         static::deleting(function (User $user) {
-            $user->posts->each->delete();
+            $user->posts()->anyFeed()->get()->each->delete();
 
             if ($user->avatar_path) {
                 Storage::disk('public')->delete($user->avatar_path);
@@ -66,11 +67,18 @@ class User extends Authenticatable
             : null);
     }
 
-    // Replace the avatar: drop the old file, store a compressed copy, persist the path.
+    // Replace the avatar: compress the new file first so a failure here leaves the
+    // old avatar intact, then swap the path and drop the old file.
     public function setAvatar(UploadedFile $file): void
     {
-        $this->clearAvatar();
-        $this->forceFill(['avatar_path' => ImageProcessor::compress($file, 'avatars', 512)])->save();
+        $newPath = ImageProcessor::compress($file, 'avatars', 512);
+        $oldPath = $this->avatar_path;
+
+        $this->forceFill(['avatar_path' => $newPath])->save();
+
+        if ($oldPath) {
+            Storage::disk('public')->delete($oldPath);
+        }
     }
 
     public function clearAvatar(): void

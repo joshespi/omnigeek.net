@@ -19,10 +19,10 @@ class Subscribe extends Component
     #[Validate('required|email|max:255')]
     public string $email = '';
 
-    #[Validate('array')]
+    #[Validate(['categories' => 'array', 'categories.*' => 'string|exists:categories,slug'])]
     public array $categories = [];
 
-    #[Validate('array')]
+    #[Validate(['geeks' => 'array', 'geeks.*' => 'integer|exists:users,id'])]
     public array $geeks = [];
 
     #[Validate('nullable|string|max:255')]
@@ -53,17 +53,23 @@ class Subscribe extends Component
 
         $tagSlugs = Tag::fromText($this->tags)->pluck('slug')->all();
 
-        $subscription = Subscription::updateOrCreate(
-            ['email' => $this->email],
-            [
-                'frequency' => $this->frequency,
-                'filters' => array_filter([
-                    'categories' => array_values($this->categories),
-                    'geeks' => array_map('intval', $this->geeks),
-                    'tags' => $tagSlugs,
-                ]),
-            ],
-        );
+        $attributes = [
+            'frequency' => $this->frequency,
+            'filters' => array_filter([
+                'categories' => array_values($this->categories),
+                'geeks' => array_map('intval', $this->geeks),
+                'tags' => $tagSlugs,
+            ]),
+        ];
+
+        // Anyone can submit any email here — if it already belongs to a confirmed
+        // subscription, don't let the new preferences take effect until whoever
+        // owns the inbox confirms them again.
+        if (Subscription::where('email', $this->email)->whereNotNull('confirmed_at')->exists()) {
+            $attributes['confirmed_at'] = null;
+        }
+
+        $subscription = Subscription::updateOrCreate(['email' => $this->email], $attributes);
 
         if (! $subscription->isConfirmed()) {
             Notification::route('mail', $subscription->email)

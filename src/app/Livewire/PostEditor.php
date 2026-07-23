@@ -4,10 +4,8 @@ namespace App\Livewire;
 
 use App\Livewire\Concerns\HandlesInlineImageUpload;
 use App\Livewire\Forms\PostForm;
-use App\Models\Category;
 use App\Models\Post;
-use App\Models\Series;
-use App\Models\Tag;
+use App\Support\PostFormOptions;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -45,6 +43,11 @@ class PostEditor extends Component
         $this->showPreview = ! $this->showPreview;
     }
 
+    protected function authorizeInlineImageUpload(): void
+    {
+        abort_unless($this->post->canEdit(auth()->user()), 403);
+    }
+
     public function save(): void
     {
         abort_unless($this->post->canEdit(auth()->user()), 403);
@@ -57,12 +60,12 @@ class PostEditor extends Component
 
     public function render()
     {
-        return view('livewire.post-editor', [
-            // Only the inline editor needs the full category/tag lists, and only one post is
-            // edited at a time — so a 15-post feed runs these queries once on open, not 15x on load.
-            'categories' => $this->editing ? Category::orderBy('name')->get() : collect(),
-            'tagHints' => $this->editing ? Tag::orderBy('name')->pluck('name') : collect(),
-            'seriesHints' => $this->editing ? Series::orderBy('name')->pluck('name') : collect(),
-        ]);
+        // Only the inline editor needs the full category/tag lists, and only one post is
+        // edited at a time — so a 15-post feed runs these queries once on open, not 15x on load.
+        $options = $this->editing
+            ? PostFormOptions::forRender()
+            : ['categories' => collect(), 'tagHints' => collect(), 'seriesHints' => collect()];
+
+        return view('livewire.post-editor', $options);
     }
 }

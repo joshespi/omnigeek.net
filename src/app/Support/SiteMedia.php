@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 
 class SiteMedia
@@ -22,25 +23,37 @@ class SiteMedia
 
     public static function store(string $path, UploadedFile $file, int $maxWidth): void
     {
-        Storage::disk('public')->delete($path);
+        // compressTo() overwrites $path in place (Storage::put), so a failed encode
+        // never touches the existing file — no upfront delete needed here.
         ImageProcessor::compressTo($file, $path, $maxWidth);
+        Cache::forget(self::cacheKey($path));
     }
 
     public static function delete(string $path): void
     {
         Storage::disk('public')->delete($path);
+        Cache::forget(self::cacheKey($path));
     }
 
+    // These paths only change when an admin re-uploads via AdminMedia, but the
+    // URL is read on every page (logo, OG image) — cache the stat check.
     protected static function urlOrNull(string $path): ?string
     {
-        $disk = Storage::disk('public');
+        return Cache::rememberForever(self::cacheKey($path), function () use ($path) {
+            $disk = Storage::disk('public');
 
-        if (! $disk->exists($path)) {
-            return null;
-        }
+            if (! $disk->exists($path)) {
+                return null;
+            }
 
-        $bust = config('app.version').'-'.$disk->lastModified($path);
+            $bust = config('app.version').'-'.$disk->lastModified($path);
 
-        return $disk->url($path).'?v='.$bust;
+            return $disk->url($path).'?v='.$bust;
+        });
+    }
+
+    protected static function cacheKey(string $path): string
+    {
+        return 'site-media-url:'.$path;
     }
 }

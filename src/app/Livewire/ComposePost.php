@@ -6,9 +6,8 @@ use App\Enums\Feed;
 use App\Jobs\NotifySubscribersOfNewPost;
 use App\Livewire\Concerns\HandlesInlineImageUpload;
 use App\Livewire\Forms\PostForm;
-use App\Models\Category;
-use App\Models\Series;
-use App\Models\Tag;
+use App\Support\PostFormOptions;
+use App\Support\PostMediaHandler;
 use Livewire\Component;
 use Livewire\Attributes\Validate;
 use Livewire\WithFileUploads;
@@ -19,7 +18,7 @@ class ComposePost extends Component
 
     public PostForm $form;
 
-    #[Validate(['media' => 'array', 'media.*' => 'file|max:51200|mimes:jpg,jpeg,png,gif,webp,mp4,webm,mov'])]
+    #[Validate(['media' => 'array', 'media.*' => PostMediaHandler::UPLOAD_RULE])]
     public array $media = [];
 
     public bool $showPreview = false;
@@ -33,7 +32,7 @@ class ComposePost extends Component
     {
         abort_unless(auth()->check(), 403);
 
-        $this->validate(['media' => 'array', 'media.*' => 'file|max:51200|mimes:jpg,jpeg,png,gif,webp,mp4,webm,mov']);
+        $this->validate();
 
         $post = $this->form->save(media: $this->media);
 
@@ -52,10 +51,6 @@ class ComposePost extends Component
 
     public function render()
     {
-        return view('livewire.compose-post', [
-            'categories' => Category::orderBy('name')->get(),
-            'tagHints' => Tag::orderBy('name')->pluck('name'),
-            'seriesHints' => Series::orderBy('name')->pluck('name'),
-        ]);
+        return view('livewire.compose-post', PostFormOptions::forRender());
     }
 }

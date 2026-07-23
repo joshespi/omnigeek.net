@@ -91,6 +91,31 @@ class PostEditorTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_a_guest_cannot_upload_an_inline_image_via_a_post_they_do_not_own(): void
+    {
+        // PostEditor is mounted for every post on every feed page, for every visitor —
+        // updating $inlineImage fires updatedInlineImage() directly, without ever
+        // calling startEditing(), so that hook is the actual gate here.
+        $owner = User::factory()->create();
+        $post = Post::factory()->for($owner)->create();
+
+        Livewire::test(PostEditor::class, ['post' => $post])
+            ->set('inlineImage', \Illuminate\Http\UploadedFile::fake()->image('shot.png'))
+            ->assertForbidden();
+    }
+
+    public function test_a_non_owner_cannot_upload_an_inline_image_via_someone_elses_post(): void
+    {
+        $owner = User::factory()->create();
+        $other = User::factory()->create();
+        $post = Post::factory()->for($owner)->create();
+
+        Livewire::actingAs($other)
+            ->test(PostEditor::class, ['post' => $post])
+            ->set('inlineImage', \Illuminate\Http\UploadedFile::fake()->image('shot.png'))
+            ->assertForbidden();
+    }
+
     public function test_editing_an_existing_youtube_post_keeps_the_id(): void
     {
         $user = User::factory()->create();

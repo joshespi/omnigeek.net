@@ -36,17 +36,30 @@ Route::get('tags/{tag}', TagFeed::class)->name('tags.show');
 Route::get('series/{series}', SeriesFeed::class)->name('series.show');
 
 Route::get('subscribe', Subscribe::class)->name('subscribe');
-Route::get('subscribe/confirm/{token}', function (string $token) {
-    $sub = Subscription::where('token', $token)->firstOrFail();
-    $sub->forceFill(['confirmed_at' => $sub->confirmed_at ?? now()])->save();
 
-    return view('subscriptions.confirmed');
-})->name('subscriptions.confirm');
-Route::get('subscribe/unsubscribe/{token}', function (string $token) {
-    Subscription::where('token', $token)->firstOrFail()->delete();
+Route::middleware('throttle:20,1')->group(function () {
+    Route::get('subscribe/confirm/{token}', function (string $token) {
+        $sub = Subscription::where('token', $token)->firstOrFail();
+        $sub->forceFill(['confirmed_at' => $sub->confirmed_at ?? now()])->save();
 
-    return view('subscriptions.unsubscribed');
-})->name('subscriptions.unsubscribe');
+        return view('subscriptions.confirmed');
+    })->name('subscriptions.confirm');
+
+    // GET only shows a confirm page — automated link-prefetchers (Outlook Safe Links
+    // and similar) fetch links in mail bodies, and a GET that deletes would silently
+    // unsubscribe people who never clicked. The actual delete is the POST below.
+    Route::get('subscribe/unsubscribe/{token}', function (string $token) {
+        Subscription::where('token', $token)->firstOrFail();
+
+        return view('subscriptions.confirm-unsubscribe', ['token' => $token]);
+    })->name('subscriptions.unsubscribe');
+
+    Route::post('subscribe/unsubscribe/{token}', function (string $token) {
+        Subscription::where('token', $token)->firstOrFail()->delete();
+
+        return view('subscriptions.unsubscribed');
+    })->name('subscriptions.unsubscribe.confirm');
+});
 
 Route::middleware(['auth', 'can:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::view('/', 'admin.home')->name('home');

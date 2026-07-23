@@ -22,4 +22,13 @@ trait HasSlug
     {
         return 'slug';
     }
+
+    // Resolve by display name, creating if new — records with the same slug are shared.
+    public static function firstOrCreateByName(string $name): static
+    {
+        return static::firstOrCreate(
+            ['slug' => Str::slug($name)],
+            ['name' => $name],
+        );
+    }
 }

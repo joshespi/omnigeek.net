@@ -8,6 +8,8 @@ use Illuminate\Http\UploadedFile;
 
 class PostMediaHandler
 {
+    public const UPLOAD_RULE = 'file|max:51200|mimes:jpg,jpeg,png,gif,webp,mp4,webm,mov';
+
     /**
      * Store one uploaded file and attach it to the post.
      *
@@ -27,5 +29,20 @@ class PostMediaHandler
             'type'       => $isVideo ? 'video' : 'image',
             'sort_order' => $sortOrder ?? $post->media()->max('sort_order') + 1,
         ]);
+    }
+
+    /**
+     * Attach several uploaded files, resolving the base sort order once instead
+     * of a MAX(sort_order) query per file.
+     *
+     * @param  iterable<UploadedFile>  $files
+     */
+    public static function attachMany(Post $post, iterable $files): void
+    {
+        $sortOrder = (int) $post->media()->max('sort_order');
+
+        foreach ($files as $file) {
+            static::attach($post, $file, ++$sortOrder);
+        }
     }
 }

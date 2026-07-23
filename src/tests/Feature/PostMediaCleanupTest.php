@@ -66,4 +66,21 @@ class PostMediaCleanupTest extends TestCase
         $this->assertSame(0, PostMedia::count());
         $this->assertSame(0, Post::count());
     }
+
+    public function test_deleting_a_user_cleans_up_a_meme_posts_media_files(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create();
+        // Memes are excluded from the default posts() relation by MainFeedScope —
+        // the deleting hook must still reach them via anyFeed(), not skip straight
+        // to the DB FK cascade (which deletes the row without firing PostMedia::deleting).
+        $post = Post::factory()->for($user)->memes()->create();
+        $media = $this->attachImage($post);
+
+        $user->delete();
+
+        Storage::disk('public')->assertMissing($media->path);
+        $this->assertSame(0, PostMedia::count());
+        $this->assertSame(0, Post::anyFeed()->count());
+    }
 }

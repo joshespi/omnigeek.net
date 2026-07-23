@@ -117,7 +117,7 @@ class Post extends Model
 
     public function scopeSearch(Builder $query, string $term): Builder
     {
-        $like = '%'.str_replace(['%', '_'], ['\%', '\_'], $term).'%';
+        $like = '%'.str_replace(['\\', '%', '_'], ['\\\\', '\%', '\_'], $term).'%';
 
         return $query->where(function (Builder $q) use ($like) {
             $q->where('title', 'like', $like)
@@ -141,9 +141,11 @@ class Post extends Model
         return $user && ($this->user_id === $user->id || $user->isAdmin());
     }
 
+    // Owner only — an admin edits content through the dedicated admin panel
+    // (AdminPosts, gated by the 'admin' Gate), not the inline feed editor.
     public function canEdit(?User $user): bool
     {
-        return $user && ($this->user_id === $user->id || $user->isAdmin());
+        return $user !== null && $this->user_id === $user->id;
     }
 
     // The feed a main post would move to, and vice versa.

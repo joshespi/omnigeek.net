@@ -18,6 +18,8 @@ trait HandlesInlineImageUpload
 
     public function updatedInlineImage(): void
     {
+        $this->authorizeInlineImageUpload();
+
         $this->validateOnly('inlineImage', [
             'inlineImage' => 'image|max:51200',
         ]);
@@ -27,5 +29,13 @@ trait HandlesInlineImageUpload
         $this->dispatch('inline-image-uploaded', url: Storage::disk('public')->url($path));
 
         $this->reset('inlineImage');
+    }
+
+    // Default: any authenticated user. Components rendered for every visitor
+    // (e.g. PostEditor, mounted on every feed post) must override this to also
+    // check ownership — the component being rendered is not itself a permission check.
+    protected function authorizeInlineImageUpload(): void
+    {
+        abort_unless(auth()->check(), 403);
     }
 }

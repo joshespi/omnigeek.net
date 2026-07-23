@@ -45,6 +45,7 @@ class AdminPosts extends Component
 
         $this->form->setFromPost($post);
         $this->editingId = $post->id;
+        $this->showPreview = false;
     }
 
     public function update(): void
