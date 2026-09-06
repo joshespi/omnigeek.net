@@ -4,6 +4,8 @@ namespace App\Models;
 
 use App\Enums\Feed;
 use App\Models\Scopes\MainFeedScope;
+use App\Observers\PostObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -11,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+#[ObservedBy(PostObserver::class)]
 class Post extends Model
 {
     use HasFactory;
@@ -117,12 +120,37 @@ class Post extends Model
 
     public function scopeSearch(Builder $query, string $term): Builder
     {
-        $like = '%'.str_replace(['\\', '%', '_'], ['\\\\', '\%', '\_'], $term).'%';
+        // MySQL/MariaDB (production) gets real full-text ranking via FULLTEXT + MATCH/AGAINST
+        // (see the fulltext-index migration). sqlite (tests, local dev) has no equivalent,
+        // so it falls back to LIKE — behaviourally close enough for those environments.
+        if ($query->getConnection()->getDriverName() !== 'mysql') {
+            $like = '%'.str_replace(['\\', '%', '_'], ['\\\\', '\%', '\_'], $term).'%';
 
-        return $query->where(function (Builder $q) use ($like) {
-            $q->where('title', 'like', $like)
-              ->orWhere('body', 'like', $like)
-              ->orWhereHas('user', fn (Builder $u) => $u->where('name', 'like', $like));
+            return $query->where(function (Builder $q) use ($like) {
+                $q->where('title', 'like', $like)
+                  ->orWhere('body', 'like', $like)
+                  ->orWhereHas('user', fn (Builder $u) => $u->where('name', 'like', $like));
+            });
+        }
+
+        // BOOLEAN MODE + a trailing wildcard per word approximates "contains" matching
+        // (unlike NATURAL LANGUAGE MODE, it also works on words below MySQL's default
+        // 50%-of-rows relevance threshold). Note InnoDB's default innodb_ft_min_token_size
+        // (3) still means 1-2 char words never match — this only helps words of 3+ chars.
+        $boolean = collect(preg_split('/\s+/', trim($term)))
+            ->map(fn (string $word) => preg_replace('/[+\-<>()~*"@]/', '', $word))
+            ->filter(fn (string $word) => $word !== '')
+            ->map(fn (string $word) => '+'.$word.'*')
+            ->implode(' ');
+
+        return $query->where(function (Builder $q) use ($boolean, $term) {
+            // Every word was pure punctuation (e.g. "??") — nothing left for MATCH to
+            // take, so skip straight to the author-name fallback instead of erroring.
+            if ($boolean !== '') {
+                $q->whereRaw('MATCH (title, body) AGAINST (? IN BOOLEAN MODE)', [$boolean]);
+            }
+
+            $q->orWhereHas('user', fn (Builder $u) => $u->where('name', 'like', '%'.$term.'%'));
         });
     }
 

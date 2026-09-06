@@ -73,6 +73,7 @@ class ShowPost extends Component
 
         return view('livewire.show-post', [
             'series' => $this->seriesContext(),
+            'image' => $image,
         ])->layout('layouts.app', [
             'ogTitle'       => $this->post->user->name.' on '.config('app.name'),
             'ogDescription' => $description,

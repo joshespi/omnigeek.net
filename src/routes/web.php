@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\FeedController;
+use App\Http\Controllers\SitemapController;
 use App\Livewire\AdminActivityLog;
 use App\Livewire\AdminCategories;
 use App\Livewire\AdminMedia;
@@ -24,6 +26,16 @@ Route::get('memes', MemeFeed::class)->name('memes');
 Route::get('search', Search::class)->name('search');
 Route::get('post/{post}', ShowPost::class)->name('posts.show');
 Route::get('geeks/{user}', GeekProfile::class)->name('geeks.show');
+
+Route::get('sitemap.xml', SitemapController::class)->name('sitemap');
+Route::get('feed.xml', FeedController::class)->name('feed');
+
+// A route (not the static public/robots.txt) so the Sitemap: line always
+// reflects the current APP_URL, wherever this is deployed.
+Route::get('robots.txt', function () {
+    return response("User-agent: *\nDisallow: /admin\n\nSitemap: ".route('sitemap')."\n")
+        ->header('Content-Type', 'text/plain');
+})->name('robots');
 
 Route::get('categories', fn () => view('categories.index', [
     'categories' => Category::withCount('posts')->orderBy('name')->get(),

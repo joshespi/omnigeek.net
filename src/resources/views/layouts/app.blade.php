@@ -7,7 +7,7 @@
 
         @php
             $ogTitle       = $ogTitle       ?? config('app.name');
-            $ogDescription = $ogDescription ?? config('app.name').' — a small invite-only mini-blog for geeks.';
+            $ogDescription = $ogDescription ?? config('app.name').' — a small mini-blog for geeks. Open to read; posting is invite-only.';
             $ogImage       = $ogImage       ?? \App\Support\SiteMedia::ogDefaultUrl();
             $ogUrl         = $ogUrl         ?? url()->current();
         @endphp
@@ -15,6 +15,9 @@
         <title>{{ $ogTitle === config('app.name') ? $ogTitle : $ogTitle.' — '.config('app.name') }}</title>
 
         <meta name="description" content="{{ $ogDescription }}">
+        <meta name="robots" content="{{ $robots ?? 'index,follow' }}">
+        <link rel="canonical" href="{{ $ogUrl }}">
+        <link rel="alternate" type="application/rss+xml" title="{{ config('app.name') }}" href="{{ route('feed') }}">
 
         <!-- Open Graph -->
         <meta property="og:site_name" content="{{ config('app.name') }}">
