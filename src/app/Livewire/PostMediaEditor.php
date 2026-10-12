@@ -17,8 +17,6 @@ class PostMediaEditor extends Component
 
     public Post $post;
 
-    public bool $editContext = false;
-
     #[Validate(['uploads' => 'array', 'uploads.*' => PostMediaHandler::UPLOAD_RULE])]
     public array $uploads = [];
 

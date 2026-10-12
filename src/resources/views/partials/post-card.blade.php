@@ -48,16 +48,35 @@
         @endif
     @endif
 
-    <livewire:post-media-editor :post="$post" :edit-context="$full" :key="'media-'.$post->id" />
-    <livewire:post-editor :post="$post" :key="'editor-'.$post->id" />
+    @php $canEdit = $post->canEdit(auth()->user()); @endphp
+    {{-- Livewire components only where they do something: the owner's editors. Everyone
+         else gets the plain gallery, saving ~2 component mounts + snapshots per card. --}}
+    @if ($full && $canEdit)
+        <livewire:post-media-editor :post="$post" :key="'media-'.$post->id" />
+    @elseif ($post->media->isNotEmpty())
+        @include('partials.post-gallery', ['items' => $post->media, 'post' => $post])
+    @endif
+    @if ($canEdit)
+        <livewire:post-editor :post="$post" :key="'editor-'.$post->id" />
+    @endif
 
     @if ($post->youtube_id)
-        <div class="aspect-video mt-2">
-            <iframe class="w-full h-full rounded-md"
-                src="https://www.youtube.com/embed/{{ $post->youtube_id }}"
-                title="YouTube video" frameborder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowfullscreen></iframe>
+        {{-- Click-to-load: a thumbnail until played, so a feed of videos doesn't pull
+             an iframe + YouTube's scripts per card. youtube-nocookie avoids tracking cookies. --}}
+        <div class="aspect-video mt-2 relative rounded-md overflow-hidden bg-black" x-data="{ play: false }">
+            <button type="button" x-show="! play" x-on:click="play = true"
+                class="absolute inset-0 w-full h-full" aria-label="Play YouTube video">
+                <img src="https://i.ytimg.com/vi/{{ $post->youtube_id }}/hqdefault.jpg" alt="" loading="lazy"
+                    class="w-full h-full object-cover" />
+                <x-play-icon size="lg" />
+            </button>
+            <template x-if="play">
+                <iframe class="w-full h-full"
+                    src="https://www.youtube-nocookie.com/embed/{{ $post->youtube_id }}?autoplay=1&playsinline=1"
+                    title="YouTube video" frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen></iframe>
+            </template>
         </div>
     @endif
 

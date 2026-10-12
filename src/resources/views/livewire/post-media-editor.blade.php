@@ -1,11 +1,11 @@
 <div>
     {{-- Gallery --}}
     @if ($this->items->isNotEmpty())
-        @include('partials.post-gallery', ['items' => $this->items, 'editContext' => $editContext, 'post' => $post])
+        @include('partials.post-gallery', ['items' => $this->items, 'editContext' => true, 'post' => $post])
     @endif
 
-    {{-- Upload form (edit context only) --}}
-    @if ($editContext && $post->canEdit(auth()->user()))
+    {{-- Upload form (mounted only for the owner; actions re-check canEdit) --}}
+    @if ($post->canEdit(auth()->user()))
         <form wire:submit="addMedia" class="mt-3">
             <div class="flex items-center gap-2">
                 <input type="file" wire:model="uploads" multiple

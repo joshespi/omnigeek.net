@@ -67,7 +67,7 @@ class UploadExtensionInvariantTest extends TestCase
         $post = Post::factory()->for($user)->create();
 
         Livewire::actingAs($user)
-            ->test(PostMediaEditor::class, ['post' => $post, 'editContext' => true])
+            ->test(PostMediaEditor::class, ['post' => $post])
             ->set('uploads', [UploadedFile::fake()->image('shell.png', 200, 200)])
             ->call('addMedia')
             ->assertHasNoErrors();

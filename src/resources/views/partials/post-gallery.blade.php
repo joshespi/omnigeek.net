@@ -3,6 +3,9 @@
 @php
     $count = $items->count();
     $nsfw = (bool) ($post?->nsfw);
+    // No per-image alt text is captured yet, so describe images by their post.
+    $altBase = $post?->preview(80) ?? 'Post media';
+    $alt = fn (int $n) => $count > 1 ? $altBase.' ('.($n + 1).' of '.$count.')' : $altBase;
 @endphp
 
 <div
@@ -10,7 +13,12 @@
         open: false,
         current: 0,
         revealed: {{ \Illuminate\Support\Js::from(! $nsfw) }},
-        items: {{ $items->map(fn($i) => ['url' => $i->url(), 'type' => $i->type])->toJson() }},
+        items: {{ $items->map(fn($i, $n) => ['url' => $i->url(), 'type' => $i->type, 'alt' => $alt($n)])->toJson() }},
+        init() {
+            this.$watch('open', () => this.pauseVideos());
+            this.$watch('current', () => this.pauseVideos());
+        },
+        pauseVideos() { this.$root.querySelectorAll('video').forEach(v => v.pause()); },
         show(index) { if (! this.revealed) return; this.current = index; this.open = true; },
         prev() { this.current = (this.current - 1 + this.items.length) % this.items.length; },
         next() { this.current = (this.current + 1) % this.items.length; },
@@ -58,20 +66,15 @@
                     'aspect-square' => ! $single,
                 ])
                 x-on:click="show({{ $index }})"
+                aria-label="{{ $item->isVideo() ? 'Play video' : 'View image' }} {{ $index + 1 }} of {{ $count }}"
             >
                 @if ($item->isVideo())
                     <video src="{{ $item->url() }}"
                         @class(['w-full', 'h-full object-cover' => ! $single, 'max-h-[85vh]' => $single])
                         muted preload="metadata"></video>
-                    <div class="absolute inset-0 flex items-center justify-center">
-                        <div class="bg-black/50 rounded-full w-10 h-10 flex items-center justify-center">
-                            <svg class="w-5 h-5 text-white ml-0.5" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M6.3 2.841A1.5 1.5 0 004 4.11v11.78a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"/>
-                            </svg>
-                        </div>
-                    </div>
+                    <x-play-icon />
                 @else
-                    <img src="{{ $item->url() }}" alt="" loading="lazy"
+                    <img src="{{ $item->url() }}" alt="{{ $alt($index) }}" loading="lazy"
                         @class(['w-full', 'h-full object-cover' => ! $single, 'max-h-[85vh] object-contain' => $single]) />
                 @endif
 
@@ -104,15 +107,19 @@
     <div
         x-show="open"
         x-cloak
+        x-trap.noscroll="open"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Media viewer"
         class="fixed inset-0 z-50 bg-black/90 flex items-center justify-center"
         x-on:click.self="open = false"
     >
         {{-- Close --}}
-        <button type="button" x-on:click="open = false"
+        <button type="button" x-on:click="open = false" aria-label="Close"
             class="absolute top-4 right-4 text-white/70 hover:text-white text-3xl leading-none">&times;</button>
 
         {{-- Prev --}}
-        <button type="button" x-show="items.length > 1" x-on:click="prev()"
+        <button type="button" x-show="items.length > 1" x-on:click="prev()" aria-label="Previous"
             class="absolute left-4 text-white/70 hover:text-white text-3xl leading-none px-2">&#8249;</button>
 
         {{-- Media --}}
@@ -123,20 +130,20 @@
                         <video :src="item.url" controls class="max-h-[85vh] w-full rounded-lg"></video>
                     </template>
                     <template x-if="item.type !== 'video'">
-                        <img :src="item.url" alt="" class="max-h-[85vh] w-full object-contain rounded-lg" />
+                        <img :src="item.url" :alt="item.alt" class="max-h-[85vh] w-full object-contain rounded-lg" />
                     </template>
                 </div>
             </template>
         </div>
 
         {{-- Next --}}
-        <button type="button" x-show="items.length > 1" x-on:click="next()"
+        <button type="button" x-show="items.length > 1" x-on:click="next()" aria-label="Next"
             class="absolute right-4 text-white/70 hover:text-white text-3xl leading-none px-2">&#8250;</button>
 
         {{-- Dots --}}
         <div x-show="items.length > 1" class="absolute bottom-4 flex gap-1.5">
             <template x-for="(item, i) in items" :key="i">
-                <button type="button" x-on:click="current = i"
+                <button type="button" x-on:click="current = i" :aria-label="'Go to item ' + (i + 1)"
                     :class="current === i ? 'bg-white' : 'bg-white/40'"
                     class="w-2 h-2 rounded-full transition-colors"></button>
             </template>
