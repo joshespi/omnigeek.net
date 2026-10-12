@@ -15,8 +15,22 @@ class ShowPost extends Component
 
     public function mount(Post $post): void
     {
+        // 404 (not 403) so a scheduled post's existence isn't revealed before it's live.
+        abort_unless($post->canView(auth()->user()), 404);
+
         $this->post = $post->load('user', 'categories', 'tags', 'media', 'series');
-        $post->increment('view_count');
+
+        if ($post->isPublished() && ! $this->isCrawler()) {
+            $post->recordView();
+        }
+    }
+
+    // Link-preview fetchers and search bots hit post URLs constantly; they aren't readers.
+    // "bot" must be followed by a separator (Googlebot/2.1, Slackbot-…) so device names
+    // like "CUBOT X30" in real phone user agents don't match.
+    protected function isCrawler(): bool
+    {
+        return (bool) preg_match('/bot(?:[\/\-_;)]|$)|crawl|spider|slurp|preview|facebookexternalhit|embedly|discord|whatsapp|telegram/i', request()->userAgent() ?? '');
     }
 
     // Gather the post's series siblings (published only) plus its prev/next neighbours,
@@ -64,21 +78,28 @@ class ShowPost extends Component
 
     public function render()
     {
-        $description = $this->post->body
-            ? str($this->post->body)->limit(160)->toString()
+        $plain = $this->post->plainBody();
+        $description = $plain !== ''
+            ? str($plain)->limit(160)->toString()
             : 'A post by '.$this->post->user->name.' on '.config('app.name').'.';
 
-        $firstImage = $this->post->media->firstWhere('type', 'image');
-        $image = $firstImage?->url();
+        // NSFW memes sit behind a click-to-reveal gate on the page, so they must not
+        // leak their image into link previews, nor be indexed.
+        $image = $this->post->nsfw ? null : $this->post->media->firstWhere('type', 'image')?->url();
 
         return view('livewire.show-post', [
             'series' => $this->seriesContext(),
             'image' => $image,
+            // Rendered once here and reused by the JSON-LD — each call is a full Markdown parse.
+            'plain' => $plain,
         ])->layout('layouts.app', [
-            'ogTitle'       => $this->post->user->name.' on '.config('app.name'),
+            'ogTitle'       => $this->post->title ?: $this->post->user->name.' on '.config('app.name'),
             'ogDescription' => $description,
             'ogImage'       => $image,
             'ogUrl'         => route('posts.show', $this->post),
+            'ogType'        => 'article',
+            'ogPublished'   => $this->post->displayDate()->toAtomString(),
+            'robots'        => $this->post->isIndexable() ? null : 'noindex,nofollow',
         ]);
     }
 }

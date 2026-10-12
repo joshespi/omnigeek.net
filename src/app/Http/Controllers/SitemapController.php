@@ -47,7 +47,7 @@ class SitemapController extends Controller
         // Both feeds are publicly readable, so both belong in the sitemap — but
         // not NSFW memes, which are click-through-gated and shouldn't surface
         // in search results.
-        Post::anyFeed()->published()->where('nsfw', false)
+        Post::anyFeed()->indexable()
             ->select('id', 'updated_at')
             ->chunkById(500, function ($posts) use ($urls) {
                 foreach ($posts as $post) {

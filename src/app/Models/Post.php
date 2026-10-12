@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\Feed;
 use App\Models\Scopes\MainFeedScope;
 use App\Observers\PostObserver;
+use App\Support\Markdown;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -24,6 +25,10 @@ class Post extends Model
 
     // Mirror the DB defaults so a freshly created model reports them without a refresh.
     protected $attributes = ['feed' => Feed::Main->value, 'nsfw' => false];
+
+    // plainBody() memo: [source body, plain text]. Keyed on the body so an edit
+    // within the same request can't return stale text.
+    private ?array $plainBodyCache = null;
 
     protected static function booted(): void
     {
@@ -182,9 +187,67 @@ class Post extends Model
         return $this->feed === Feed::Memes ? Feed::Main : Feed::Memes;
     }
 
+    public function isPublished(): bool
+    {
+        return $this->published_at === null || $this->published_at->lte(now());
+    }
+
+    // What search engines may index: live and not click-through-gated. Shared by the
+    // sitemap (scope) and the post page's robots meta (instance) so they can't drift.
+    public function scopeIndexable(Builder $query): Builder
+    {
+        return $query->published()->where('nsfw', false);
+    }
+
+    public function isIndexable(): bool
+    {
+        return $this->isPublished() && ! $this->nsfw;
+    }
+
+    // Query-builder increment: Eloquent's would also bump updated_at, which feeds the
+    // sitemap lastmod and JSON-LD dateModified; anyFeed() so memes count too.
+    public function recordView(): void
+    {
+        static::anyFeed()->whereKey($this->getKey())->toBase()->increment('view_count');
+    }
+
+    // Scheduled posts are visible only to whoever could edit or moderate them.
+    public function canView(?User $user): bool
+    {
+        return $this->isPublished() || $this->canDelete($user);
+    }
+
+    // Body as plain text — Markdown rendered, then tags stripped — for meta
+    // descriptions and structured data, where raw `**syntax**` would leak through.
+    // Memoized: previews of this post are read from several places per page.
+    public function plainBody(): string
+    {
+        if (! $this->body) {
+            return '';
+        }
+
+        if ($this->plainBodyCache && $this->plainBodyCache[0] === $this->body) {
+            return $this->plainBodyCache[1];
+        }
+
+        // Swap images for their alt text first, so an image-only body still has words.
+        $html = preg_replace('/<img\b[^>]*\balt="([^"]*)"[^>]*>/i', ' $1 ', Markdown::render($this->body));
+        $text = trim(preg_replace('/\s+/u', ' ', html_entity_decode(strip_tags($html), ENT_QUOTES | ENT_HTML5)));
+
+        $this->plainBodyCache = [$this->body, $text];
+
+        return $text;
+    }
+
     public function preview(int $limit): ?string
     {
-        return $this->title ?: ($this->body ? str($this->body)->limit($limit)->toString() : null);
+        if ($this->title) {
+            return $this->title;
+        }
+
+        $plain = $this->plainBody();
+
+        return $plain !== '' ? str($plain)->limit($limit)->toString() : null;
     }
 
     public static function parseYoutubeId(?string $url): ?string

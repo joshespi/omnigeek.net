@@ -3,7 +3,7 @@
         '@context' => 'https://schema.org',
         '@type' => 'BlogPosting',
         'headline' => $post->title
-            ?: str(strip_tags($post->body ?? ''))->limit(110)->toString()
+            ?: str($plain)->limit(110)->toString()
             ?: 'A post by '.$post->user->name,
         'mainEntityOfPage' => ['@type' => 'WebPage', '@id' => route('posts.show', $post)],
         'datePublished' => $post->displayDate()->toAtomString(),
@@ -15,8 +15,8 @@
         ],
     ];
 
-    if ($post->body) {
-        $jsonLd['articleBody'] = strip_tags($post->body);
+    if ($plain !== '') {
+        $jsonLd['articleBody'] = $plain;
     }
 
     if ($image) {

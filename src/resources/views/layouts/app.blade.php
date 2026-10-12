@@ -10,6 +10,7 @@
             $ogDescription = $ogDescription ?? config('app.name').' — a small mini-blog for geeks. Open to read; posting is invite-only.';
             $ogImage       = $ogImage       ?? \App\Support\SiteMedia::ogDefaultUrl();
             $ogUrl         = $ogUrl         ?? url()->current();
+            $ogType        = $ogType        ?? 'website';
         @endphp
 
         <title>{{ $ogTitle === config('app.name') ? $ogTitle : $ogTitle.' — '.config('app.name') }}</title>
@@ -24,7 +25,10 @@
         <meta property="og:title"       content="{{ $ogTitle }}">
         <meta property="og:description" content="{{ $ogDescription }}">
         <meta property="og:url"         content="{{ $ogUrl }}">
-        <meta property="og:type"        content="website">
+        <meta property="og:type"        content="{{ $ogType }}">
+        @isset($ogPublished)
+            <meta property="article:published_time" content="{{ $ogPublished }}">
+        @endisset
         @if ($ogImage)
             <meta property="og:image" content="{{ $ogImage }}">
             <meta property="og:image:width"  content="1200">
@@ -88,6 +92,10 @@
             x-on:keydown.escape.window="open = false"
             x-show="open"
             x-cloak
+            x-trap.noscroll="open"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="compose-title"
             class="fixed inset-0 z-50 flex items-start justify-center pt-16 px-4"
         >
             {{-- backdrop --}}
@@ -96,8 +104,8 @@
             {{-- modal panel --}}
             <div class="relative z-10 w-full max-w-4xl bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 max-h-[85vh] overflow-y-auto">
                 <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-base font-semibold text-gray-900 dark:text-gray-100">New post</h2>
-                    <button @click="open = false" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xl leading-none">&times;</button>
+                    <h2 id="compose-title" class="text-base font-semibold text-gray-900 dark:text-gray-100">New post</h2>
+                    <button @click="open = false" aria-label="Close" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xl leading-none">&times;</button>
                 </div>
                 <livewire:compose-post />
             </div>

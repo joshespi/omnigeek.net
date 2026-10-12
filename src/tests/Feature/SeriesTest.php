@@ -110,7 +110,8 @@ class SeriesTest extends TestCase
             'published_at' => now()->addWeek(),
         ]);
 
-        Livewire::test(ShowPost::class, ['post' => $scheduled])
+        // Scheduled posts are author/admin-only, so view it as the author.
+        Livewire::actingAs($scheduled->user)->test(ShowPost::class, ['post' => $scheduled])
             ->assertViewHas('series', null);
     }
 
