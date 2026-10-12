@@ -4,7 +4,6 @@ namespace App\Livewire;
 
 use App\Livewire\Concerns\HandlesPostModeration;
 use App\Models\Post;
-use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -25,11 +24,13 @@ class MemeFeed extends Component
         $this->resetPage();
     }
 
-    #[Layout('layouts.app')]
     public function render()
     {
         return view('livewire.meme-feed', [
             'posts' => Post::withFeedRelations()->memes()->published()->latestForFeed()->paginate(15),
+        ])->layout('layouts.app', [
+            'ogTitle' => 'Memes',
+            'ogDescription' => 'Memes from the '.config('app.name').' crew.',
         ]);
     }
 }

@@ -84,6 +84,9 @@ class Subscribe extends Component
         return view('livewire.subscribe', [
             'allCategories' => Category::orderBy('name')->get(),
             'allGeeks' => User::has('posts')->orderBy('name')->get(['id', 'name']),
-        ])->layout('layouts.app');
+        ])->layout('layouts.app', [
+            'ogTitle' => 'Subscribe',
+            'ogDescription' => 'Get new '.config('app.name').' posts by email — instantly or as a digest.',
+        ]);
     }
 }

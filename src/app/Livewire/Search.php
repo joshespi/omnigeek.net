@@ -38,6 +38,6 @@ class Search extends Component
 
         // Search results are per-query duplicate/thin content — keep them out of the index.
         return view('livewire.search', ['posts' => $posts])
-            ->layout('layouts.app', ['robots' => 'noindex,follow']);
+            ->layout('layouts.app', ['ogTitle' => 'Search', 'robots' => 'noindex,follow']);
     }
 }

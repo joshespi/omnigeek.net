@@ -4,7 +4,6 @@ namespace App\Livewire;
 
 use App\Livewire\Concerns\HandlesPostModeration;
 use App\Models\Series;
-use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -20,7 +19,6 @@ class SeriesFeed extends Component
         $this->series = $series;
     }
 
-    #[Layout('layouts.app')]
     public function render()
     {
         return view('livewire.series-feed', [
@@ -28,6 +26,9 @@ class SeriesFeed extends Component
                 ->withFeedRelations()
                 ->published()
                 ->paginate(15),
+        ])->layout('layouts.app', [
+            'ogTitle' => $this->series->name,
+            'ogDescription' => 'A series of posts: '.$this->series->name.' on '.config('app.name').'.',
         ]);
     }
 }

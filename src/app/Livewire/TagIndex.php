@@ -5,7 +5,6 @@ namespace App\Livewire;
 use App\Livewire\Concerns\HandlesPostModeration;
 use App\Models\Post;
 use App\Models\Tag;
-use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -33,7 +32,6 @@ class TagIndex extends Component
         $this->resetPage();
     }
 
-    #[Layout('layouts.app')]
     public function render()
     {
         $posts = $this->selected === []
@@ -47,6 +45,10 @@ class TagIndex extends Component
         return view('livewire.tag-index', [
             'tags' => Tag::has('posts')->withCount('posts')->orderBy('name')->get(),
             'posts' => $posts,
+        ])->layout('layouts.app', [
+            'ogTitle' => 'Browse by tag',
+            'ogDescription' => 'Filter '.config('app.name').' posts by one or more tags.',
+            'robots' => $this->selected === [] ? null : 'noindex,follow',
         ]);
     }
 }
