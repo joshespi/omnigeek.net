@@ -100,6 +100,10 @@ new class extends Component
                         </x-slot>
                     </x-nav-dropdown>
 
+                    <x-nav-link :href="route('series.index')" :active="request()->routeIs('series.*')" wire:navigate>
+                        {{ __('Series') }}
+                    </x-nav-link>
+
                     <x-nav-dropdown label="Tags" routePrefix="tags">
                         <a href="{{ route('tags.index') }}" wire:navigate
                             class="block px-4 py-2 text-sm font-medium text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-600">
@@ -218,6 +222,9 @@ new class extends Component
                     {{ $category->name }}
                 </x-responsive-nav-link>
             @endforeach
+            <x-responsive-nav-link :href="route('series.index')" :active="request()->routeIs('series.*')" wire:navigate>
+                {{ __('Series') }}
+            </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('memes')" :active="request()->routeIs('memes')" wire:navigate>
                 {{ __('Memes') }}
             </x-responsive-nav-link>

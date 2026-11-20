@@ -18,6 +18,22 @@
                 <div class="font-medium text-gray-900 dark:text-gray-100">Posts</div>
                 <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Edit or delete any post on the site.</p>
             </a>
+            <a href="{{ route('admin.series') }}" wire:navigate
+                class="block bg-white dark:bg-gray-800 shadow-sm rounded-lg p-5 hover:shadow transition">
+                <div class="font-medium text-gray-900 dark:text-gray-100">Series</div>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Rename a series and write the introduction shown on its page.</p>
+            </a>
+            @php $openRemovals = \App\Models\RemovalRequest::open()->count(); @endphp
+            <a href="{{ route('admin.removal-requests') }}" wire:navigate
+                class="block bg-white dark:bg-gray-800 shadow-sm rounded-lg p-5 hover:shadow transition">
+                <div class="font-medium text-gray-900 dark:text-gray-100">
+                    Removal requests
+                    @if ($openRemovals > 0)
+                        <span class="ml-1 inline-block rounded-full bg-red-100 dark:bg-red-900/40 px-2 py-0.5 text-xs text-red-700 dark:text-red-300">{{ $openRemovals }} open</span>
+                    @endif
+                </div>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">People asking for a name, a quote or an image to be removed or changed.</p>
+            </a>
             <a href="{{ route('admin.users') }}" wire:navigate
                 class="block bg-white dark:bg-gray-800 shadow-sm rounded-lg p-5 hover:shadow transition">
                 <div class="font-medium text-gray-900 dark:text-gray-100">Users</div>

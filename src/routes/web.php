@@ -6,11 +6,14 @@ use App\Livewire\AdminActivityLog;
 use App\Livewire\AdminCategories;
 use App\Livewire\AdminMedia;
 use App\Livewire\AdminPosts;
+use App\Livewire\AdminRemovalRequests;
+use App\Livewire\AdminSeries;
 use App\Livewire\AdminUsers;
 use App\Livewire\CategoryFeed;
 use App\Livewire\Feed;
 use App\Livewire\GeekProfile;
 use App\Livewire\MemeFeed;
+use App\Livewire\RequestRemoval;
 use App\Livewire\Search;
 use App\Livewire\SeriesFeed;
 use App\Livewire\ShowPost;
@@ -18,6 +21,7 @@ use App\Livewire\Subscribe;
 use App\Livewire\TagFeed;
 use App\Livewire\TagIndex;
 use App\Models\Category;
+use App\Models\Series;
 use App\Models\Subscription;
 use Illuminate\Support\Facades\Route;
 
@@ -45,7 +49,15 @@ Route::get('categories/{category}', CategoryFeed::class)->name('categories.show'
 Route::get('tags', TagIndex::class)->name('tags.index');
 Route::get('tags/{tag}', TagFeed::class)->name('tags.show');
 
+// Only series with something published to read; the count is of published parts.
+Route::get('series', fn () => view('series.index', [
+    'allSeries' => Series::listed()
+        ->withCount(['posts' => fn ($q) => $q->published()])
+        ->get(),
+]))->name('series.index');
 Route::get('series/{series}', SeriesFeed::class)->name('series.show');
+
+Route::get('removal-request', RequestRemoval::class)->name('removal-request');
 
 Route::get('subscribe', Subscribe::class)->name('subscribe');
 
@@ -79,6 +91,8 @@ Route::middleware(['auth', 'can:admin'])->prefix('admin')->name('admin.')->group
     Route::get('categories', AdminCategories::class)->name('categories');
     Route::get('media', AdminMedia::class)->name('media');
     Route::get('posts', AdminPosts::class)->name('posts');
+    Route::get('removal-requests', AdminRemovalRequests::class)->name('removal-requests');
+    Route::get('series', AdminSeries::class)->name('series');
     Route::get('users', AdminUsers::class)->name('users');
 });
 

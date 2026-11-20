@@ -23,13 +23,15 @@ Runs at <http://localhost:8084> (change the `8084:80` mapping if it clashes; mat
 
 ## Features
 
-- **Feed** — public read, auth-gated posting. Markdown body, optional title/image/video (≤50 MB)/YouTube. Images compressed on upload. Scheduled/backdated posts via post date field.
+- **Feed** — public read, auth-gated posting. Markdown body, optional title/image/video (≤50 MB)/YouTube. Images compressed on upload. Each image or video can carry a caption (added from the post's own page by its author), shown under it and used as its alt text. Scheduled/backdated posts via post date field.
 - **Geeks** (`/geeks/{user}`) — per-user profile: avatar, bio, posts.
 - **Categories** — admin-curated; chips link to `/categories/{slug}`.
 - **Tags** — freeform, lowercased. `/tags` filters by selected tags (shareable URL).
+- **Series** — type a series name and part number on a post to group a multi-part read. `/series` lists every series with published parts; `/series/{slug}` shows its introduction, a "Start reading" link to the first part, and the parts in order. Each post in a series gets previous/next links.
+- **Removal requests** (`/removal-request`) — anyone named, quoted or pictured in a post can ask for it to be changed or taken down; every post page links to the form. No login, name and email optional, honeypot plus 5 requests an hour per address.
 - **Search** — `/search?q=` across title, body, author.
-- **Admin** — `/admin`: post + category management, user list, activity log, site media. Gate: `is_admin = true`.
-- **Email subscribe** (`/subscribe`) — double opt-in, no login. Filter by category/geek/tag. Delivery: `instant` or `digest` (daily/weekly/monthly).
+- **Admin** — `/admin`: post + category management, series names and introductions, the removal-request queue, user list, activity log, site media. Gate: `is_admin = true`.
+- **Email subscribe** (`/subscribe`) — double opt-in, no login. Filter by category/geek/tag/series; a series page's "Follow this series by email" link pre-selects it. Delivery: `instant` or `digest` (daily/weekly/monthly).
 - **Dark mode** — nav toggle, persisted.
 
 ## Inviting people
