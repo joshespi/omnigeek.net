@@ -11,3 +11,4 @@ db_data/
 node_modules/
 # Throwaway Playwright/verification probe scripts dropped at repo root
 /*.mjs
+backups/
