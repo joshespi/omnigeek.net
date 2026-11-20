@@ -35,6 +35,7 @@ class SitemapController extends Controller
             ['loc' => route('memes'), 'changefreq' => 'hourly', 'priority' => '0.7'],
             ['loc' => route('categories.index'), 'changefreq' => 'weekly', 'priority' => '0.5'],
             ['loc' => route('tags.index'), 'changefreq' => 'weekly', 'priority' => '0.5'],
+            ['loc' => route('series.index'), 'changefreq' => 'weekly', 'priority' => '0.5'],
         ]);
 
         foreach (self::TAXONOMIES as [$model, $routeName, $priority]) {

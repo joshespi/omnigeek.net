@@ -15,6 +15,12 @@ class Markdown
         return (string) self::converter()->convert($text);
     }
 
+    // Rendered Markdown reduced to one line of plain text (for excerpts and meta descriptions).
+    public static function plain(string $text): string
+    {
+        return trim(preg_replace('/\s+/u', ' ', html_entity_decode(strip_tags(self::render($text)), ENT_QUOTES | ENT_HTML5)));
+    }
+
     private static function converter(): MarkdownConverter
     {
         if (self::$converter === null) {
