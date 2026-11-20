@@ -42,4 +42,9 @@
     @endif
 
     @include('partials.post-share', ['post' => $post])
+
+    <p class="mt-4 text-xs text-gray-400 dark:text-gray-500">
+        Appear in this post and would rather not?
+        <a href="{{ route('removal-request', ['post' => $post->id]) }}" wire:navigate class="underline hover:text-gray-600 dark:hover:text-gray-300">Request a removal</a>.
+    </p>
 </div>
