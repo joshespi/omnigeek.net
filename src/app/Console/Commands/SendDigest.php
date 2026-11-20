@@ -32,9 +32,9 @@ class SendDigest extends Command
 
         $cutoffFor = fn (Subscription $sub): Carbon => $sub->last_notified_at ?? $cadence->windowStart($now);
 
-        // Only what wantsPost() (categories/tags) and the mail body (user) need —
+        // Only what wantsPost() (categories/tags/series) and the mail body (user) need —
         // not the full withFeedRelations() set, which would bloat every queued mail.
-        $candidates = Post::with('user', 'categories', 'tags')
+        $candidates = Post::with('user', 'categories', 'tags', 'series')
             ->where('created_at', '>', $subscribers->min($cutoffFor))
             ->latest()
             ->get();

@@ -49,7 +49,7 @@ class Subscription extends Model
 
     /**
      * Does this subscription want to hear about the given post?
-     * No filters = everything. Otherwise match ANY selected category/geek/tag.
+     * No filters = everything. Otherwise match ANY selected category/geek/tag/series.
      */
     public function wantsPost(Post $post): bool
     {
@@ -58,13 +58,15 @@ class Subscription extends Model
         $categories = $filters['categories'] ?? [];
         $geeks = $filters['geeks'] ?? [];
         $tags = $filters['tags'] ?? [];
+        $series = $filters['series'] ?? [];
 
-        if (! $categories && ! $geeks && ! $tags) {
+        if (! $categories && ! $geeks && ! $tags && ! $series) {
             return true;
         }
 
         return $post->categories->pluck('slug')->intersect($categories)->isNotEmpty()
             || $post->tags->pluck('slug')->intersect($tags)->isNotEmpty()
-            || in_array($post->user_id, $geeks, false);
+            || in_array($post->user_id, $geeks, false)
+            || ($series && in_array($post->series?->slug, $series, true));
     }
 }

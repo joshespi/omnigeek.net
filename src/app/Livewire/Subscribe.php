@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Enums\DigestCadence;
 use App\Enums\SubscriptionFrequency;
 use App\Models\Category;
+use App\Models\Series;
 use App\Models\Subscription;
 use App\Models\Tag;
 use App\Models\User;
@@ -25,6 +26,9 @@ class Subscribe extends Component
     #[Validate(['geeks' => 'array', 'geeks.*' => 'integer|exists:users,id'])]
     public array $geeks = [];
 
+    #[Validate(['series' => 'array', 'series.*' => 'string|exists:series,slug'])]
+    public array $series = [];
+
     #[Validate('nullable|string|max:255')]
     public string $tags = '';
 
@@ -36,6 +40,13 @@ class Subscribe extends Component
 
     public function mount(): void
     {
+        // "Follow this series" links arrive as /subscribe?series=<slug>: pre-tick it.
+        $slug = request()->query('series');
+
+        if (is_string($slug) && Series::where('slug', $slug)->exists()) {
+            $this->series = [$slug];
+        }
+
         $this->frequencyOptions = [
             SubscriptionFrequency::Instant->value => SubscriptionFrequency::Instant->label(),
             SubscriptionFrequency::Digest->value => SubscriptionFrequency::Digest->label().' — '.DigestCadence::current()->label(),
@@ -59,6 +70,7 @@ class Subscribe extends Component
                 'categories' => array_values($this->categories),
                 'geeks' => array_map('intval', $this->geeks),
                 'tags' => $tagSlugs,
+                'series' => array_values($this->series),
             ]),
         ];
 
@@ -84,6 +96,7 @@ class Subscribe extends Component
         return view('livewire.subscribe', [
             'allCategories' => Category::orderBy('name')->get(),
             'allGeeks' => User::has('posts')->orderBy('name')->get(['id', 'name']),
+            'allSeries' => Series::listed()->get(['slug', 'name']),
         ])->layout('layouts.app', [
             'ogTitle' => 'Subscribe',
             'ogDescription' => 'Get new '.config('app.name').' posts by email — instantly or as a digest.',

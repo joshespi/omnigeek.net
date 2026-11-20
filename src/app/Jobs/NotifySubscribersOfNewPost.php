@@ -19,7 +19,7 @@ class NotifySubscribersOfNewPost implements ShouldQueue
 
     public function handle(): void
     {
-        $this->post->loadMissing('user', 'categories', 'tags');
+        $this->post->loadMissing('user', 'categories', 'tags', 'series');
 
         // notify() on a ShouldQueue notification dispatches its own queued job
         // immediately, so a mid-loop failure here (worker runs --tries=3) would

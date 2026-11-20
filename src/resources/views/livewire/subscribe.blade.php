@@ -32,6 +32,15 @@
                 </div>
             @endif
 
+            @if ($allSeries->isNotEmpty())
+                <div>
+                    <x-input-label :value="__('Series (optional)')" />
+                    <div class="mt-2">
+                        <x-checkbox-pills :items="$allSeries" model="series" value="slug" />
+                    </div>
+                </div>
+            @endif
+
             <div>
                 <x-input-label for="sub-tags" :value="__('Tags (optional)')" />
                 <x-text-input wire:model="tags" id="sub-tags" type="text" class="mt-1 block w-full" placeholder="rust homelab" />
