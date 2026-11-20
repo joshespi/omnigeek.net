@@ -20,6 +20,19 @@ class PostMediaEditor extends Component
     #[Validate(['uploads' => 'array', 'uploads.*' => PostMediaHandler::UPLOAD_RULE])]
     public array $uploads = [];
 
+    // Caption text being edited, keyed by media id.
+    public array $captions = [];
+
+    public function mount(): void
+    {
+        $this->loadCaptions();
+    }
+
+    protected function loadCaptions(): void
+    {
+        $this->captions = $this->post->media->mapWithKeys(fn (PostMedia $m) => [$m->id => $m->caption ?? ''])->all();
+    }
+
     #[Computed]
     public function items(): Collection
     {
@@ -36,6 +49,22 @@ class PostMediaEditor extends Component
 
         $this->reset('uploads');
         $this->post->refresh();
+        $this->loadCaptions();
+    }
+
+    public function saveCaption(int $id): void
+    {
+        abort_unless($this->post->canEdit(auth()->user()), 403);
+
+        $item = PostMedia::findOrFail($id);
+        abort_unless($item->post_id === $this->post->id, 403);
+
+        $this->validate(['captions.'.$id => ['nullable', 'string', 'max:500']], [], ['captions.'.$id => 'caption']);
+
+        $item->update(['caption' => trim($this->captions[$id] ?? '') ?: null]);
+
+        $this->post->refresh();
+        $this->loadCaptions();
     }
 
     public function removeItem(int $id): void
@@ -47,6 +76,7 @@ class PostMediaEditor extends Component
 
         $item->delete();
         $this->post->refresh();
+        $this->loadCaptions();
     }
 
     public function render()

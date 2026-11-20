@@ -3,9 +3,10 @@
 @php
     $count = $items->count();
     $nsfw = (bool) ($post?->nsfw);
-    // No per-image alt text is captured yet, so describe images by their post.
+    // An image's caption is its alt text; one without a caption is described by its post.
     $altBase = $post?->preview(80) ?? 'Post media';
-    $alt = fn (int $n) => $count > 1 ? $altBase.' ('.($n + 1).' of '.$count.')' : $altBase;
+    $alt = fn (int $n) => $items[$n]->caption ?: ($count > 1 ? $altBase.' ('.($n + 1).' of '.$count.')' : $altBase);
+    $captioned = $items->filter(fn ($i) => filled($i->caption));
 @endphp
 
 <div
@@ -13,7 +14,7 @@
         open: false,
         current: 0,
         revealed: {{ \Illuminate\Support\Js::from(! $nsfw) }},
-        items: {{ $items->map(fn($i, $n) => ['url' => $i->url(), 'type' => $i->type, 'alt' => $alt($n)])->toJson() }},
+        items: {{ $items->map(fn($i, $n) => ['url' => $i->url(), 'type' => $i->type, 'alt' => $alt($n), 'caption' => $i->caption])->toJson() }},
         init() {
             this.$watch('open', () => this.pauseVideos());
             this.$watch('current', () => this.pauseVideos());
@@ -89,16 +90,44 @@
     </div>
     </div>
 
-    {{-- Delete buttons (edit context) --}}
+    {{-- Captions: one image gets a line under it; several get a numbered list.
+         Hidden with the images while an NSFW post is unrevealed. --}}
+    @if ($captioned->isNotEmpty())
+        <div x-show="revealed" class="mt-2 text-sm italic text-gray-600 dark:text-gray-400">
+            @if ($count === 1)
+                <p>{{ $items->first()->caption }}</p>
+            @else
+                <ol class="space-y-0.5 list-none">
+                    @foreach ($items as $item)
+                        @if (filled($item->caption))
+                            <li><span class="not-italic text-gray-400">{{ $loop->iteration }}.</span> {{ $item->caption }}</li>
+                        @endif
+                    @endforeach
+                </ol>
+            @endif
+        </div>
+    @endif
+
+    {{-- Caption and delete controls (edit context) --}}
     @if ($editContext && $post?->canEdit(auth()->user()))
-        <div class="flex flex-wrap gap-1 mt-1">
+        <div class="mt-2 space-y-1">
             @foreach ($items as $item)
-                <button type="button"
-                    wire:click="removeItem({{ $item->id }})"
-                    wire:confirm="Remove this media?"
-                    class="text-xs text-red-500 hover:underline">
-                    Remove #{{ $loop->iteration }}
-                </button>
+                <div wire:key="media-controls-{{ $item->id }}" class="flex items-center gap-2">
+                    <span class="w-5 text-xs text-gray-400 text-right">#{{ $loop->iteration }}</span>
+                    <input type="text" wire:model="captions.{{ $item->id }}" maxlength="500"
+                        wire:keydown.enter.prevent="saveCaption({{ $item->id }})"
+                        placeholder="Caption (optional)" aria-label="Caption for item {{ $loop->iteration }}"
+                        class="flex-1 min-w-0 text-xs border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:border-brand-500 focus:ring-brand-500 py-1 px-2" />
+                    <button type="button" wire:click="saveCaption({{ $item->id }})"
+                        class="text-xs text-brand-600 dark:text-brand-400 hover:underline">Save</button>
+                    <button type="button"
+                        wire:click="removeItem({{ $item->id }})"
+                        wire:confirm="Remove this media?"
+                        class="text-xs text-red-500 hover:underline">
+                        Remove
+                    </button>
+                </div>
+                <x-input-error :messages="$errors->get('captions.'.$item->id)" class="ml-7" />
             @endforeach
         </div>
     @endif
@@ -132,6 +161,7 @@
                     <template x-if="item.type !== 'video'">
                         <img :src="item.url" :alt="item.alt" class="max-h-[85vh] w-full object-contain rounded-lg" />
                     </template>
+                    <p x-show="item.caption" x-text="item.caption" class="mt-2 text-center text-sm italic text-white/80"></p>
                 </div>
             </template>
         </div>

@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Storage;
 
 class PostMedia extends Model
 {
-    protected $fillable = ['post_id', 'path', 'type', 'sort_order'];
+    protected $fillable = ['post_id', 'path', 'type', 'caption', 'sort_order'];
 
     protected static function booted(): void
     {
