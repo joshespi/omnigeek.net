@@ -11,6 +11,8 @@
         'w-full',
         'absolute inset-0' => $cover,
         'h-full object-cover' => $cover || ! $single,
+        // Covers crop to landscape; anchor to the top so poster titles and faces survive.
+        'object-[50%_8%]' => $cover,
         'max-h-[85vh]' => ! $cover && $single,
     ];
 @endphp
