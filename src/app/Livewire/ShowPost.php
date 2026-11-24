@@ -5,6 +5,8 @@ namespace App\Livewire;
 use App\Enums\Feed;
 use App\Livewire\Concerns\HandlesPostModeration;
 use App\Models\Post;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Livewire\Component;
 
 class ShowPost extends Component
@@ -54,18 +56,39 @@ class ShowPost extends Component
         }
 
         return [
-            'series'   => $this->post->series,
-            'posts'    => $posts,
+            'series' => $this->post->series,
+            'posts' => $posts,
             'position' => $index + 1,
-            'total'    => $posts->count(),
-            'prev'     => $index > 0 ? $posts->get($index - 1) : null,
-            'next'     => $posts->get($index + 1),
+            'total' => $posts->count(),
+            'prev' => $index > 0 ? $posts->get($index - 1) : null,
+            'next' => $posts->get($index + 1),
         ];
     }
 
     protected function afterDelete(): void
     {
         $this->redirect(route('home'), navigate: true);
+    }
+
+    protected function relatedPosts(): Collection
+    {
+        $categories = $this->post->categories->modelKeys();
+        $tags = $this->post->tags->modelKeys();
+
+        if (! $this->post->isIndexable() || (! $categories && ! $tags)) {
+            return new Collection;
+        }
+
+        return Post::with('user', 'categories', 'media')
+            ->indexable()
+            ->whereKeyNot($this->post->getKey())
+            ->where(fn (Builder $query) => $query
+                ->whereHas('categories', fn (Builder $query) => $query->whereKey($categories))
+                ->orWhereHas('tags', fn (Builder $query) => $query->whereKey($tags)))
+            ->latestForFeed()
+            ->latest('id')
+            ->limit(3)
+            ->get();
     }
 
     protected function afterMove(Post $post, Feed $target): void
@@ -89,17 +112,18 @@ class ShowPost extends Component
 
         return view('livewire.show-post', [
             'series' => $this->seriesContext(),
+            'related' => $this->relatedPosts(),
             'image' => $image,
             // Rendered once here and reused by the JSON-LD — each call is a full Markdown parse.
             'plain' => $plain,
         ])->layout('layouts.app', [
-            'ogTitle'       => $this->post->title ?: $this->post->user->name.' on '.config('app.name'),
+            'ogTitle' => $this->post->title ?: $this->post->user->name.' on '.config('app.name'),
             'ogDescription' => $description,
-            'ogImage'       => $image,
-            'ogUrl'         => route('posts.show', $this->post),
-            'ogType'        => 'article',
-            'ogPublished'   => $this->post->displayDate()->toAtomString(),
-            'robots'        => $this->post->isIndexable() ? null : 'noindex,nofollow',
+            'ogImage' => $image,
+            'ogUrl' => route('posts.show', $this->post),
+            'ogType' => 'article',
+            'ogPublished' => $this->post->displayDate()->toAtomString(),
+            'robots' => $this->post->isIndexable() ? null : 'noindex,nofollow',
         ]);
     }
 }

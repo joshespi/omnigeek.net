@@ -4,7 +4,9 @@ namespace Tests\Feature;
 
 use App\Enums\Feed;
 use App\Livewire\ShowPost;
+use App\Models\Category;
 use App\Models\Post;
+use App\Models\Tag;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -23,6 +25,29 @@ class ShowPostTest extends TestCase
             ->assertSee('A shareable post')
             ->assertSee('Copy link to share elsewhere')
             ->assertSee('Share on Bluesky');
+    }
+
+    public function test_related_posts_match_categories_or_tags_and_exclude_unpublished_posts(): void
+    {
+        $category = Category::create(['name' => 'Games']);
+        $tag = Tag::create(['name' => 'Co-op']);
+        $post = Post::factory()->create(['title' => 'The current story']);
+        $post->categories()->attach($category);
+        $post->tags()->attach($tag);
+
+        Post::factory()->create(['title' => 'Category match'])->categories()->attach($category);
+        Post::factory()->create(['title' => 'Tag match'])->tags()->attach($tag);
+        Post::factory()->create(['title' => 'Upcoming story', 'published_at' => now()->addDay()])
+            ->categories()->attach($category);
+        Post::factory()->create(['title' => 'Unrelated story']);
+
+        $this->get(route('posts.show', $post))
+            ->assertOk()
+            ->assertSee('Related posts')
+            ->assertSee('Category match')
+            ->assertSee('Tag match')
+            ->assertDontSee('Upcoming story')
+            ->assertDontSee('Unrelated story');
     }
 
     public function test_an_author_can_delete_from_the_post_page(): void
