@@ -28,8 +28,11 @@ class Feed extends Component
     #[Layout('layouts.app')]
     public function render()
     {
+        $posts = Post::with('user', 'categories', 'media')->published()->latestForFeed()->latest('id')->paginate(15);
+
         return view('livewire.feed', [
-            'posts' => Post::withFeedRelations()->published()->latestForFeed()->paginate(15),
+            'posts' => $posts,
+            'featured' => $posts->onFirstPage() ? $posts->first() : null,
         ]);
     }
 }

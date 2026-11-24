@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\Feed as PostFeed;
 use App\Livewire\ComposePost;
 use App\Livewire\Feed;
 use App\Models\Post;
@@ -140,6 +141,29 @@ class FeedTest extends TestCase
             ->assertOk()
             ->assertSee('Public hello')
             ->assertSee('Log in');
+    }
+
+    public function test_home_features_the_latest_published_main_post_only_on_page_one(): void
+    {
+        $author = User::factory()->create();
+        Post::factory()->for($author)->count(15)->create(['published_at' => now()->subDays(2)]);
+        $featured = Post::factory()->for($author)->create(['title' => 'Featured story', 'published_at' => now()->subDay()]);
+        Post::factory()->for($author)->create(['title' => 'Scheduled story', 'published_at' => now()->addDay()]);
+        Post::factory()->for($author)->create(['title' => 'A meme', 'feed' => PostFeed::Memes]);
+
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertSee('wire:key="featured-post-'.$featured->id.'"', false)
+            ->assertSee('Page 1 of 2')
+            ->assertDontSee('Scheduled story')
+            ->assertDontSee('A meme')
+            ->assertDontSee('wire:key="post-'.$featured->id.'"', false);
+
+        $this->get(route('home', ['page' => 2]))
+            ->assertOk()
+            ->assertSee('Page 2 of 2')
+            ->assertDontSee('Featured story')
+            ->assertDontSee('wire:key="featured-post-', false);
     }
 
     public function test_guests_cannot_post(): void
