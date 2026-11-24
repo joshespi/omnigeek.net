@@ -55,6 +55,7 @@ new #[Layout('layouts.guest')] class extends Component
 }; ?>
 
 <div>
+    <h1 class="page-title mb-4">{{ __('Reset your password') }}</h1>
     <form wire:submit="resetPassword">
         <div>
             <x-input-label for="email" :value="__('Email')" />

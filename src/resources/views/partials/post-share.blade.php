@@ -5,7 +5,7 @@
     $title = $post->preview(120) ?? 'A post on '.config('app.name');
 
     // Shared styling for the square platform-icon links.
-    $iconLink = 'inline-flex items-center justify-center w-9 h-9 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600';
+    $iconLink = 'site-control bg-editorial-elevated';
 @endphp
 
 <div
@@ -14,23 +14,29 @@
         title: @js($title),
         copied: false,
         canShare: !! (navigator.share),
-        copy() {
-            navigator.clipboard.writeText(this.url);
-            this.copied = true;
-            setTimeout(() => this.copied = false, 1500);
+        copyFailed: false,
+        async copy() {
+            try {
+                await navigator.clipboard.writeText(this.url);
+                this.copied = true;
+                this.copyFailed = false;
+                setTimeout(() => this.copied = false, 1500);
+            } catch {
+                this.copyFailed = true;
+            }
         },
         nativeShare() {
             navigator.share({ title: this.title, url: this.url }).catch(() => {});
         },
     }"
-    class="mt-6 border-t border-gray-100 dark:border-gray-700 pt-4"
+    class="mt-6"
 >
-    <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Share this post</p>
+    <p class="mb-2 text-sm font-medium text-editorial-heading">Share this post</p>
 
     <div class="flex flex-wrap items-center gap-2">
         {{-- Copy link --}}
         <button type="button" x-on:click="copy()"
-            class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-md bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600">
+            class="site-control gap-2 bg-editorial-elevated px-3 text-sm">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 010 5.656l-3 3a4 4 0 11-5.656-5.656l1.5-1.5M10.172 13.828a4 4 0 010-5.656l3-3a4 4 0 115.656 5.656l-1.5 1.5"/>
             </svg>
@@ -39,13 +45,12 @@
         </button>
 
         {{-- Native share (mobile / supported browsers) --}}
-        <button type="button" x-show="canShare" x-cloak x-on:click="nativeShare()"
-            class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-md bg-brand-600 text-white hover:bg-brand-700">
+        <x-primary-button type="button" x-show="canShare" x-cloak x-on:click="nativeShare()" class="gap-2">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
             </svg>
             Share…
-        </button>
+        </x-primary-button>
 
         {{-- Platform links --}}
         <a target="_blank" rel="noopener noreferrer"
@@ -72,4 +77,5 @@
             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
         </a>
     </div>
+    <p x-show="copyFailed" x-cloak role="status" class="mt-2 text-sm text-editorial-muted">Copy the link from your browser’s address bar.</p>
 </div>

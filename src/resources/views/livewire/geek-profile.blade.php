@@ -1,17 +1,17 @@
-<div class="max-w-4xl mx-auto px-4 py-8">
-    <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6 mb-6">
+<div class="site-container py-10">
+    <header class="mb-7 rounded-xl border border-editorial-border bg-editorial-surface p-6 sm:p-8">
         <div class="flex items-center gap-4">
             <x-avatar :user="$user" size="lg" />
             <div>
-                <h1 class="text-xl font-display font-bold text-gray-900 dark:text-gray-100">{{ $user->name }}</h1>
-                <p class="text-sm text-gray-500 dark:text-gray-400">{{ $posts->total() }} {{ Str::plural('post', $posts->total()) }}</p>
+                <h1 class="page-title [overflow-wrap:anywhere]">{{ $user->name }}</h1>
+                <p class="mt-1 text-sm text-editorial-muted">{{ $posts->total() }} {{ Str::plural('post', $posts->total()) }}</p>
             </div>
         </div>
 
         @if ($user->bio)
-            <p class="mt-4 text-gray-700 dark:text-gray-300 whitespace-pre-wrap break-words">{{ $user->bio }}</p>
+            <p class="mt-4 max-w-2xl whitespace-pre-wrap leading-relaxed text-editorial-body [overflow-wrap:anywhere]">{{ $user->bio }}</p>
         @endif
-    </div>
+    </header>
 
     <x-posts-feed :posts="$posts" />
 </div>

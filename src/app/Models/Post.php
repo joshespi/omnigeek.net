@@ -239,6 +239,11 @@ class Post extends Model
         return $text;
     }
 
+    public function displayTitle(): string
+    {
+        return $this->title ?: 'A post by '.$this->user->name;
+    }
+
     public function preview(int $limit): ?string
     {
         if ($this->title) {

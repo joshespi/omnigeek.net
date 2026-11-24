@@ -1,22 +1,23 @@
-@props(['posts', 'empty' => 'No posts yet.', 'deletable' => false, 'numbered' => false])
+@props(['posts', 'empty' => 'No posts yet.', 'deletable' => false, 'numbered' => false, 'skipFirst' => false, 'heading' => 'h2'])
 
-<div class="space-y-4">
-    @forelse ($posts as $post)
-        <div wire:key="post-{{ $post->id }}" @class(['flex gap-3' => $numbered])>
-            @if ($numbered)
-                <div class="shrink-0 mt-1 w-8 h-8 rounded-full bg-brand-100 dark:bg-brand-900 text-brand-700 dark:text-brand-300 flex items-center justify-center text-sm font-semibold">
-                    {{ $post->series_part ?? '•' }}
-                </div>
-                <div class="flex-1 min-w-0">
-                    @include('partials.post-card', ['post' => $post, 'deletable' => $deletable])
+<div>
+    <div @class(['space-y-4' => $deletable, 'editorial-grid' => ! $deletable])>
+        @forelse (($skipFirst ? $posts->getCollection()->skip(1) : $posts) as $post)
+            @if ($deletable)
+                <div wire:key="post-{{ $post->id }}">
+                    @include('partials.post-card', ['post' => $post])
                 </div>
             @else
-                @include('partials.post-card', ['post' => $post, 'deletable' => $deletable])
+                <x-editorial-card :post="$post" :numbered="$numbered" :heading="$heading" wire:key="post-{{ $post->id }}" />
             @endif
-        </div>
-    @empty
-        <p class="text-center text-gray-500">{{ $empty }}</p>
-    @endforelse
+        @empty
+            @unless ($skipFirst)
+                <p class="editorial-empty">{{ $empty }}</p>
+            @endunless
+        @endforelse
+    </div>
 
-    <div class="mt-4">{{ $posts->links() }}</div>
+    @if ($posts->hasPages())
+        <div class="mt-8">{{ $posts->onEachSide(1)->links('partials.editorial-pagination') }}</div>
+    @endif
 </div>

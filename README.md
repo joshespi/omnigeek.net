@@ -6,6 +6,11 @@ Invite-only-to-post mini-blog. Public to read; posting + accounts are invite-onl
 
 Laravel · PHP · Livewire · MariaDB · nginx · Vite · Docker Compose. App code in `src/`; Docker config at repo root.
 
+## Editorial theme
+
+- Colours are CSS variables in `src/resources/css/app.css` (`:root` / `:root.dark`), exposed to Tailwind as `editorial-*`. Dark is the default theme.
+- Shared UI lives in Blade components: `editorial-card`, `post-byline`, `post-categories`, `category-filter`, `site-logo`, `site-footer`, plus `partials/editorial-pagination`.
+
 ## First-time setup
 
 ```bash

@@ -57,7 +57,7 @@ new class extends Component
 
             @if (auth()->user()->avatar_path)
                 <button type="button" wire:click="removeAvatar"
-                    class="text-sm text-gray-500 hover:text-red-600">{{ __('Remove') }}</button>
+                    class="min-h-11 text-sm text-editorial-muted hover:text-red-700 dark:hover:text-red-300">{{ __('Remove') }}</button>
             @endif
 
             <x-action-message class="me-3" on="avatar-updated">{{ __('Saved.') }}</x-action-message>

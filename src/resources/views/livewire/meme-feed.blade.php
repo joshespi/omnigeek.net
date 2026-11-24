@@ -22,8 +22,8 @@
     {{-- Feed stays hidden until the gate is accepted, so nothing shows through. --}}
     <div x-show="entered" x-cloak>
         <div class="mb-6">
-            <h1 class="text-xl font-display font-bold text-gray-900 dark:text-gray-100">Memes</h1>
-            <p class="text-sm text-gray-500 dark:text-gray-400">Images and random junk — kept out of the main feed.</p>
+            <h1 class="page-title">Memes</h1>
+            <p class="mt-2 text-sm text-editorial-muted">Images and random junk — kept out of the main feed.</p>
         </div>
 
         <x-posts-feed :posts="$posts" :deletable="true" empty="No memes yet." />

@@ -9,7 +9,7 @@
         <lastBuildDate>{{ ($posts->first()?->displayDate() ?? now())->toRssString() }}</lastBuildDate>
 @foreach ($posts as $post)
         <item>
-            <title><![CDATA[{!! $post->title ?: 'A post by '.$post->user->name !!}]]></title>
+            <title><![CDATA[{!! str_replace(']]>', ']]]]><![CDATA[>', $post->displayTitle()) !!}]]></title>
             <link>{{ route('posts.show', $post) }}</link>
             <guid isPermaLink="true">{{ route('posts.show', $post) }}</guid>
             <pubDate>{{ $post->displayDate()->toRssString() }}</pubDate>

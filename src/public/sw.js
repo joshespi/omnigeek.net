@@ -1,4 +1,4 @@
-const CACHE = 'omnigeek-v2';
+const CACHE = 'omnigeek-v3';
 const OFFLINE_URL = '/offline.html';
 
 self.addEventListener('install', e => {

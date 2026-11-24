@@ -1,17 +1,27 @@
-<div class="max-w-4xl mx-auto px-4 py-8">
-    <div class="mb-6">
-        <input type="search" wire:model.live.debounce.300ms="query"
-            placeholder="Search posts…" aria-label="Search posts"
-            class="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:border-brand-500 focus:ring-brand-500"
+<div class="site-container py-10">
+    <div class="mb-6 max-w-xl">
+        <h1 class="page-title mb-5">Search</h1>
+        <label for="post-search" class="sr-only">Search posts</label>
+        <input id="post-search" type="search" wire:model.live.debounce.300ms="query"
+            placeholder="Search by title, text, or author"
+            class="w-full rounded-lg border-editorial-border bg-editorial-surface px-4 py-3 text-editorial-heading placeholder:text-editorial-muted focus:border-editorial-accent focus:ring-editorial-accent"
             autofocus />
     </div>
 
-    @if ($posts === null)
-        <p class="text-center text-gray-400 dark:text-gray-500 text-sm">Type at least 3 characters to search.</p>
-    @elseif ($posts->isEmpty())
-        <p class="text-center text-gray-400 dark:text-gray-500 text-sm">No results for <strong>{{ $query }}</strong>.</p>
-    @else
-        <p class="text-xs text-gray-400 dark:text-gray-500 mb-4">{{ $posts->total() }} {{ Str::plural('result', $posts->total()) }} for <strong>{{ $query }}</strong></p>
+    <p wire:offline class="editorial-empty mb-4">Search is unavailable offline.</p>
+    <div role="status" aria-atomic="true">
+        <p wire:loading.delay wire:target="query" class="mb-4 text-sm text-editorial-muted">Searching…</p>
+        <div wire:loading.remove wire:target="query">
+            @if ($posts === null)
+                <p class="editorial-empty">Type at least 3 characters to search.</p>
+            @elseif ($posts->isEmpty())
+                <p class="editorial-empty [overflow-wrap:anywhere]">No results for <strong>{{ $query }}</strong>.</p>
+            @else
+                <p class="mb-4 text-sm text-editorial-muted [overflow-wrap:anywhere]">{{ $posts->total() }} {{ Str::plural('result', $posts->total()) }} for <strong>{{ $query }}</strong></p>
+            @endif
+        </div>
+    </div>
+    @if ($posts && $posts->isNotEmpty())
         <x-posts-feed :posts="$posts" />
     @endif
 </div>

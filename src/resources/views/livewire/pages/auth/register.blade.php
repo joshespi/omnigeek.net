@@ -74,8 +74,9 @@ new #[Layout('layouts.guest')] class extends Component
 }; ?>
 
 <div>
+    <h1 class="page-title mb-4">{{ __('Create an account') }}</h1>
     @unless ($this->invite_valid)
-        <div class="mb-4 text-sm text-red-600">
+        <div class="mb-4 text-sm text-red-700 dark:text-red-300">
             {{ __('This invite link is invalid, expired, or already used. Ask whoever invited you for a fresh link.') }}
         </div>
     @else
@@ -105,7 +106,7 @@ new #[Layout('layouts.guest')] class extends Component
         </div>
 
         <div class="flex items-center justify-end mt-4">
-            <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500" href="{{ route('login') }}" wire:navigate>
+            <a class="site-link text-sm underline" href="{{ route('login') }}" wire:navigate>
                 {{ __('Already registered?') }}
             </a>
 

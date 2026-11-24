@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -21,25 +21,22 @@
         <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 
         <!-- Fonts -->
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=lato:400,700|poppins:500,600,700&display=swap" rel="stylesheet" />
-
+        @include('partials.editorial-fonts')
         @include('partials.dark-mode-head')
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="font-sans text-gray-900 dark:text-gray-100 antialiased">
-        <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-gray-100 dark:bg-gray-900">
-            <div>
-                <a href="/" wire:navigate class="font-display text-3xl font-bold tracking-tight text-brand-600 dark:text-brand-500">
-                    {{ config('app.name', 'OmniGeek') }}
-                </a>
+    <body class="bg-editorial-canvas font-sans text-editorial-body antialiased">
+        <main class="site-container flex min-h-screen flex-col items-center py-8 sm:justify-center">
+            <div class="flex w-full max-w-md items-center justify-between gap-4">
+                <x-site-logo />
+                <x-theme-toggle />
             </div>
 
-            <div class="w-full sm:max-w-md mt-6 px-6 py-4 bg-white dark:bg-gray-800 shadow-md overflow-hidden sm:rounded-lg">
+            <div class="mt-4 w-full max-w-md rounded-xl border border-editorial-border bg-editorial-surface px-6 py-5">
                 {{ $slot }}
             </div>
-        </div>
+        </main>
     </body>
 </html>

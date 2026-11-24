@@ -1,4 +1,4 @@
-@props(['items', 'editContext' => false, 'post' => null])
+@props(['items', 'editContext' => false, 'post' => null, 'cover' => false, 'priority' => false])
 
 @php
     $count = $items->count();
@@ -6,7 +6,13 @@
     // An image's caption is its alt text; one without a caption is described by its post.
     $altBase = $post?->preview(80) ?? 'Post media';
     $alt = fn (int $n) => $items[$n]->caption ?: ($count > 1 ? $altBase.' ('.($n + 1).' of '.$count.')' : $altBase);
-    $captioned = $items->filter(fn ($i) => filled($i->caption));
+    $single = $count === 1;
+    $mediaClasses = [
+        'w-full',
+        'absolute inset-0' => $cover,
+        'h-full object-cover' => $cover || ! $single,
+        'max-h-[85vh]' => ! $cover && $single,
+    ];
 @endphp
 
 <div
@@ -27,10 +33,10 @@
     x-on:keydown.left.window="open && prev()"
     x-on:keydown.right.window="open && next()"
     x-on:keydown.escape.window="open = false"
-    class="mt-2"
+    @class(['editorial-cover' => $cover, 'mt-2' => ! $cover])
 >
     {{-- Grid --}}
-    <div class="relative">
+    <div @class(['relative', 'h-full' => $cover])>
         @if ($nsfw)
             {{-- NSFW gate: blur the grid until the viewer clicks to reveal. --}}
             <button type="button" x-show="! revealed" x-on:click="revealed = true"
@@ -47,43 +53,46 @@
                 x-bind:class="revealed ? '' : 'pointer-events-none select-none'"
             @endif
             @class([
-                'grid gap-1 rounded-lg overflow-hidden',
-                'grid-cols-1' => $count === 1,
-                'grid-cols-2' => $count >= 2,
+                'grid gap-1 overflow-hidden',
+                'rounded-lg' => ! $cover,
+                'h-full' => $cover,
+                'grid-cols-1' => $cover || $single,
+                'grid-cols-2' => ! $cover && $count >= 2,
             ])>
-        @php
-            // A lone image shows uncropped at its natural ratio (capped height); tiles in a
-            // multi-image grid stay square-cropped so the grid reads cleanly.
-            $single = $count === 1;
-        @endphp
-        @foreach ($items->take(4) as $index => $item)
-            @php $isLast = $index === 3 && $count > 4; @endphp
+        @foreach ($items->take($cover ? 1 : 4) as $index => $item)
+            @php
+                $remaining = $loop->last ? $count - $loop->count : 0;
+                $eager = $priority && $loop->first;
+            @endphp
             <button
                 type="button"
                 wire:ignore
                 @class([
-                    'relative overflow-hidden bg-gray-200 dark:bg-gray-700',
-                    'col-span-2' => $count === 3 && $index === 2,
-                    'aspect-square' => ! $single,
+                    'relative overflow-hidden bg-editorial-elevated focus-visible:outline-offset-[-4px]',
+                    'col-span-2' => ! $cover && $count === 3 && $index === 2,
+                    'aspect-square' => ! $cover && ! $single,
                 ])
                 x-on:click="show({{ $index }})"
                 aria-label="{{ $item->isVideo() ? 'Play video' : 'View image' }} {{ $index + 1 }} of {{ $count }}"
             >
                 @if ($item->isVideo())
                     <video src="{{ $item->url() }}"
-                        @class(['w-full', 'h-full object-cover' => ! $single, 'max-h-[85vh]' => $single])
-                        muted preload="metadata"></video>
+                        @class($mediaClasses)
+                        muted preload="{{ $cover && ! $eager ? 'none' : 'metadata' }}"></video>
                     <x-play-icon />
                 @else
-                    <img src="{{ $item->url() }}" alt="{{ $alt($index) }}" loading="lazy"
-                        @class(['w-full', 'h-full object-cover' => ! $single, 'max-h-[85vh] object-contain' => $single]) />
+                    <img src="{{ $item->url() }}" alt="{{ $alt($index) }}" loading="{{ $eager ? 'eager' : 'lazy' }}"
+                        @if ($eager) fetchpriority="high" @endif
+                        @class($mediaClasses + ['object-contain' => ! $cover && $single]) />
                 @endif
 
-                {{-- "+N more" overlay on 4th tile --}}
-                @if ($isLast)
-                    <div class="absolute inset-0 bg-black/60 flex items-center justify-center">
-                        <span class="text-white text-xl font-semibold">+{{ $count - 4 }}</span>
-                    </div>
+                {{-- Count the items beyond the visible thumbnails. --}}
+                @if ($remaining > 0)
+                    <span @class([
+                        'absolute bg-black/60 text-white font-semibold',
+                        'bottom-3 end-3 rounded-md px-2 py-1 text-sm' => $cover,
+                        'inset-0 flex items-center justify-center text-xl' => ! $cover,
+                    ])>+{{ $remaining }}</span>
                 @endif
             </button>
         @endforeach
@@ -92,7 +101,7 @@
 
     {{-- Captions: one image gets a line under it; several get a numbered list.
          Hidden with the images while an NSFW post is unrevealed. --}}
-    @if ($captioned->isNotEmpty())
+    @if (! $cover && $items->contains(fn ($item) => filled($item->caption)))
         <div x-show="revealed" class="mt-2 text-sm italic text-gray-600 dark:text-gray-400">
             @if ($count === 1)
                 <p>{{ $items->first()->caption }}</p>
@@ -153,15 +162,15 @@
 
         {{-- Media --}}
         <div class="max-w-4xl w-full max-h-screen px-16 flex items-center justify-center">
-            <template x-for="(item, i) in items" :key="i">
-                <div x-show="current === i" class="w-full">
-                    <template x-if="item.type === 'video'">
-                        <video :src="item.url" controls class="max-h-[85vh] w-full rounded-lg"></video>
+            <template x-if="open">
+                <div class="w-full">
+                    <template x-if="items[current].type === 'video'">
+                        <video :src="items[current].url" controls class="max-h-[85vh] w-full rounded-lg"></video>
                     </template>
-                    <template x-if="item.type !== 'video'">
-                        <img :src="item.url" :alt="item.alt" class="max-h-[85vh] w-full object-contain rounded-lg" />
+                    <template x-if="items[current].type !== 'video'">
+                        <img :src="items[current].url" :alt="items[current].alt" class="max-h-[85vh] w-full object-contain rounded-lg" />
                     </template>
-                    <p x-show="item.caption" x-text="item.caption" class="mt-2 text-center text-sm italic text-white/80"></p>
+                    <p x-show="items[current].caption" x-text="items[current].caption" class="mt-2 text-center text-sm italic text-white/80"></p>
                 </div>
             </template>
         </div>

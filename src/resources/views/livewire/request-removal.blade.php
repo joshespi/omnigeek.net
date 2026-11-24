@@ -1,17 +1,17 @@
-<div class="max-w-xl mx-auto px-4 py-8">
-    <h1 class="text-xl font-display font-bold text-gray-900 dark:text-gray-100 mb-2">Request a removal</h1>
-    <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">
+<div class="site-container max-w-xl py-10">
+    <h1 class="page-title mb-3">Request a removal</h1>
+    <p class="mb-6 text-editorial-body">
         If your name, your words or an image of you appears in a post here and you would rather it didn't,
         tell us. We can blur a name, change it, or take the content down.
     </p>
 
     @if ($done)
-        <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6 text-center">
+        <div class="rounded-xl border border-editorial-border bg-editorial-surface p-6 text-center">
             <p class="text-gray-800 dark:text-gray-200">Thank you. Your request has been sent and someone will look at it.</p>
-            <a href="{{ route('home') }}" wire:navigate class="mt-3 inline-block text-sm text-brand-600 dark:text-brand-400 hover:underline">← Back to feed</a>
+            <a href="{{ route('home') }}" wire:navigate class="mt-3 inline-block text-sm text-brand-600 dark:text-brand-400 hover:underline">Back to feed</a>
         </div>
     @else
-        <form wire:submit="save" class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6 space-y-5">
+        <form wire:submit="save" class="rounded-xl border border-editorial-border bg-editorial-surface p-6 space-y-5">
             @if ($post)
                 <div class="rounded-md bg-gray-50 dark:bg-gray-700/50 px-3 py-2 text-sm text-gray-600 dark:text-gray-300">
                     About:

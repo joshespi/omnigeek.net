@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -57,31 +57,31 @@
         <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 
         <!-- Fonts -->
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=lato:400,700|poppins:500,600,700&display=swap" rel="stylesheet" />
-
+        @include('partials.editorial-fonts')
         @include('partials.dark-mode-head')
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="font-sans antialiased">
-        <div class="min-h-screen bg-gray-100 dark:bg-gray-900">
+    <body class="bg-editorial-canvas font-sans text-editorial-body antialiased">
+        <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:start-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-editorial-surface focus:px-4 focus:py-3 focus:text-editorial-heading">Skip to content</a>
+        <div class="flex min-h-screen flex-col">
             <livewire:layout.navigation />
 
             <!-- Page Heading -->
             @if (isset($header))
-                <header class="bg-white dark:bg-gray-800 shadow">
-                    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+                <header class="border-b border-editorial-border bg-editorial-surface">
+                    <div class="site-container py-6 text-editorial-heading">
                         {{ $header }}
                     </div>
                 </header>
             @endif
 
             <!-- Page Content -->
-            <main>
+            <main id="main-content" tabindex="-1" class="flex-1 scroll-mt-16">
                 {{ $slot }}
             </main>
+            <x-site-footer />
         </div>
 
         @auth
@@ -102,7 +102,7 @@
             <div class="absolute inset-0 bg-black/50" @click="open = false"></div>
 
             {{-- modal panel --}}
-            <div class="relative z-10 w-full max-w-4xl bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 max-h-[85vh] overflow-y-auto">
+            <div class="relative z-10 w-full max-w-4xl rounded-xl border border-editorial-border bg-editorial-surface p-6 max-h-[85vh] overflow-y-auto">
                 <div class="flex items-center justify-between mb-4">
                     <h2 id="compose-title" class="text-base font-semibold text-gray-900 dark:text-gray-100">New post</h2>
                     <button @click="open = false" aria-label="Close" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xl leading-none">&times;</button>

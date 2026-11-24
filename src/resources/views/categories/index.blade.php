@@ -1,16 +1,16 @@
 <x-app-layout og-title="Categories">
-    <div class="max-w-4xl mx-auto px-4 py-8">
-        <h1 class="text-xl font-display font-bold text-gray-900 dark:text-gray-100 mb-6">Categories</h1>
+    <div class="site-container py-10">
+        <h1 class="page-title mb-6">Categories</h1>
 
-        <div class="grid gap-3 sm:grid-cols-2">
+        <div class="editorial-grid">
             @forelse ($categories as $category)
                 <a href="{{ route('categories.show', $category) }}" wire:navigate
-                    class="flex items-center justify-between bg-white dark:bg-gray-800 shadow-sm rounded-lg p-4 hover:shadow transition">
-                    <span class="font-medium text-gray-900 dark:text-gray-100">{{ $category->name }}</span>
-                    <span class="text-sm text-gray-400">{{ $category->posts_count }}</span>
+                    class="editorial-card flex-row items-center justify-between gap-3 p-5">
+                    <span class="font-display text-lg font-semibold text-editorial-heading [overflow-wrap:anywhere]">{{ $category->name }}</span>
+                    <span class="shrink-0 text-sm text-editorial-muted">{{ $category->posts_count }} {{ Str::plural('post', $category->posts_count) }}</span>
                 </a>
             @empty
-                <p class="text-gray-500">No categories yet.</p>
+                <p class="editorial-empty">No categories yet.</p>
             @endforelse
         </div>
     </div>
