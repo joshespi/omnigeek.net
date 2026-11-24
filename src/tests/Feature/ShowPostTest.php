@@ -27,6 +27,35 @@ class ShowPostTest extends TestCase
             ->assertSee('Share on Bluesky');
     }
 
+    public function test_an_edited_post_shows_the_badge_and_edit_list(): void
+    {
+        $post = Post::factory()->create(['body' => 'Body text']);
+        $post->edits()->create(['note' => 'Corrected the venue', 'edited_at' => now()]);
+
+        $this->get(route('posts.show', $post))
+            ->assertOk()
+            ->assertSee('edited-badge', false)
+            ->assertSee('Corrected the venue');
+    }
+
+    public function test_an_unedited_post_has_no_edit_badge_or_list(): void
+    {
+        $post = Post::factory()->create(['body' => 'Body text']);
+
+        $this->get(route('posts.show', $post))
+            ->assertOk()
+            ->assertDontSee('edited-badge', false)
+            ->assertDontSee('id="edits"', false);
+    }
+
+    public function test_the_home_feed_tags_edited_posts(): void
+    {
+        $post = Post::factory()->create(['title' => 'Edited story', 'body' => 'Body text']);
+        $post->edits()->create(['note' => 'Tweaked', 'edited_at' => now()]);
+
+        $this->get(route('home'))->assertOk()->assertSee('edited-badge', false);
+    }
+
     public function test_related_posts_match_categories_or_tags_and_exclude_unpublished_posts(): void
     {
         $category = Category::create(['name' => 'Games']);

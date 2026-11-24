@@ -28,7 +28,7 @@ class Feed extends Component
     #[Layout('layouts.app')]
     public function render()
     {
-        $posts = Post::with('user', 'categories', 'media')->published()->latestForFeed()->latest('id')->paginate(15);
+        $posts = Post::with('user', 'categories', 'media')->withCount('edits')->published()->latestForFeed()->latest('id')->paginate(15);
 
         return view('livewire.feed', [
             'posts' => $posts,

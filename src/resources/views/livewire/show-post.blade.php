@@ -41,7 +41,7 @@
 
             <div class="mt-5 flex items-center gap-3">
                 <x-avatar :user="$post->user" size="md" />
-                <x-post-byline :post="$post" updated />
+                <x-post-byline :post="$post" link-edits />
             </div>
             @include('partials.post-moderation', ['post' => $post, 'movable' => true])
         </header>
@@ -66,6 +66,20 @@
 
         @if ($canEdit)
             <livewire:post-editor :post="$post" :key="'editor-'.$post->id" />
+        @endif
+
+        @if ($post->edits->isNotEmpty())
+            <details id="edits" class="edit-log mt-8">
+                <summary>Edits ({{ $post->edits->count() }})</summary>
+                <ul>
+                    @foreach ($post->edits as $edit)
+                        <li>
+                            <time datetime="{{ $edit->edited_at->toAtomString() }}">{{ $edit->edited_at->format('M j, Y') }}</time>
+                            <span>{{ $edit->note }}</span>
+                        </li>
+                    @endforeach
+                </ul>
+            </details>
         @endif
 
         <footer class="mt-9 border-t border-editorial-border pt-5">

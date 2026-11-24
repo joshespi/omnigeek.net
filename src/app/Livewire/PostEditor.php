@@ -54,6 +54,8 @@ class PostEditor extends Component
 
         $this->form->save($this->post);
 
+        $this->dispatch('post-edited');
+
         $this->editing = false;
         $this->showPreview = false;
     }

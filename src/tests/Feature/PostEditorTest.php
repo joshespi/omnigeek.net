@@ -31,6 +31,55 @@ class PostEditorTest extends TestCase
         $this->assertDatabaseHas('posts', ['id' => $post->id, 'body' => 'edited']);
     }
 
+    public function test_saving_with_an_edit_note_logs_a_public_edit(): void
+    {
+        $user = User::factory()->create();
+        $post = Post::factory()->for($user)->create(['body' => 'original']);
+
+        Livewire::actingAs($user)
+            ->test(PostEditor::class, ['post' => $post])
+            ->call('startEditing')
+            ->set('form.body', 'edited')
+            ->set('form.editNote', 'Fixed a typo')
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertDispatched('post-edited');
+
+        $this->assertDatabaseHas('post_edits', ['post_id' => $post->id, 'note' => 'Fixed a typo']);
+        $this->assertTrue($post->fresh()->wasEdited());
+    }
+
+    public function test_saving_without_an_edit_note_logs_nothing(): void
+    {
+        $user = User::factory()->create();
+        $post = Post::factory()->for($user)->create(['body' => 'original']);
+
+        Livewire::actingAs($user)
+            ->test(PostEditor::class, ['post' => $post])
+            ->call('startEditing')
+            ->set('form.body', 'edited')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseCount('post_edits', 0);
+        $this->assertFalse($post->fresh()->wasEdited());
+    }
+
+    public function test_edit_note_is_limited_to_255_characters(): void
+    {
+        $user = User::factory()->create();
+        $post = Post::factory()->for($user)->create(['body' => 'original']);
+
+        Livewire::actingAs($user)
+            ->test(PostEditor::class, ['post' => $post])
+            ->call('startEditing')
+            ->set('form.editNote', str_repeat('a', 256))
+            ->call('save')
+            ->assertHasErrors(['form.editNote' => 'max']);
+
+        $this->assertDatabaseCount('post_edits', 0);
+    }
+
     public function test_editing_syncs_categories_and_tags(): void
     {
         $user = User::factory()->create();

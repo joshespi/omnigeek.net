@@ -39,6 +39,13 @@
                 <x-input-error :messages="$errors->get('form.publishedAt')" class="mt-1" />
             </div>
 
+            <div class="mt-3">
+                <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Edit note (shown publicly — leave blank to log nothing)</label>
+                <input type="text" wire:model="form.editNote" maxlength="255" placeholder="e.g. Fixed the date of the trip"
+                    class="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:border-brand-500 focus:ring-brand-500 text-sm" />
+                <x-input-error :messages="$errors->get('form.editNote')" class="mt-1" />
+            </div>
+
             <div class="flex items-center gap-3 mt-3">
                 <x-primary-button>Save</x-primary-button>
                 <button type="button" wire:click="cancelEditing"

@@ -71,6 +71,34 @@
         @apply border-editorial-accent bg-editorial-elevated font-semibold text-editorial-accent;
     }
 
+    .edited-badge {
+        @apply inline-flex items-center gap-1 rounded-full border border-editorial-border bg-editorial-surface px-2 py-0.5 text-xs font-medium text-editorial-muted;
+    }
+
+    a.edited-badge {
+        @apply transition-colors hover:text-editorial-accent;
+    }
+
+    .edit-log {
+        @apply rounded-xl border border-editorial-border bg-editorial-surface px-5 py-3 text-sm text-editorial-body;
+    }
+
+    .edit-log summary {
+        @apply cursor-pointer font-medium text-editorial-heading;
+    }
+
+    .edit-log ul {
+        @apply mt-3 space-y-2;
+    }
+
+    .edit-log li {
+        @apply flex flex-col gap-0.5 sm:flex-row sm:gap-3;
+    }
+
+    .edit-log time {
+        @apply shrink-0 text-editorial-muted;
+    }
+
     .editorial-grid {
         @apply grid gap-5 sm:grid-cols-2 lg:grid-cols-3;
     }

@@ -82,9 +82,25 @@ class Post extends Model
         return $this->belongsTo(Series::class);
     }
 
+    // Public changelog entries, newest first.
+    public function edits(): HasMany
+    {
+        return $this->hasMany(PostEdit::class)->orderByDesc('edited_at')->orderByDesc('id');
+    }
+
+    // Cheapest source first: loaded relation (post page), edits_count (cards), else one query.
+    public function wasEdited(): bool
+    {
+        if ($this->relationLoaded('edits')) {
+            return $this->edits->isNotEmpty();
+        }
+
+        return ($this->edits_count ?? $this->edits()->count()) > 0;
+    }
+
     public function scopeWithFeedRelations(Builder $query): Builder
     {
-        return $query->with('user', 'categories', 'tags', 'media', 'series');
+        return $query->with('user', 'categories', 'tags', 'media', 'series')->withCount('edits');
     }
 
     public function scopePublished(Builder $query): Builder

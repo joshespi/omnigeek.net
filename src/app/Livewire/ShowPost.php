@@ -7,6 +7,7 @@ use App\Livewire\Concerns\HandlesPostModeration;
 use App\Models\Post;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 class ShowPost extends Component
@@ -20,11 +21,18 @@ class ShowPost extends Component
         // 404 (not 403) so a scheduled post's existence isn't revealed before it's live.
         abort_unless($post->canView(auth()->user()), 404);
 
-        $this->post = $post->load('user', 'categories', 'tags', 'media', 'series');
+        $this->post = $post->load('user', 'categories', 'tags', 'media', 'series', 'edits');
 
         if ($post->isPublished() && ! $this->isCrawler()) {
             $post->recordView();
         }
+    }
+
+    // The inline editor logged a new changelog entry; reload so the badge and list update.
+    #[On('post-edited')]
+    public function refreshEdits(): void
+    {
+        $this->post->load('edits');
     }
 
     // Link-preview fetchers and search bots hit post URLs constantly; they aren't readers.
@@ -80,6 +88,7 @@ class ShowPost extends Component
         }
 
         return Post::with('user', 'categories', 'media')
+            ->withCount('edits')
             ->indexable()
             ->whereKeyNot($this->post->getKey())
             ->where(fn (Builder $query) => $query

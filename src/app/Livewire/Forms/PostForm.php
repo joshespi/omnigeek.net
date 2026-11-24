@@ -38,12 +38,18 @@ class PostForm extends Form
     #[Validate('nullable|date')]
     public string $publishedAt = '';
 
+    // Public changelog line. Blank on an existing post = a silent fix, nothing shown to readers.
+    #[Validate('nullable|string|max:255')]
+    public string $editNote = '';
+
     public bool $toMemes = false;
 
     public bool $nsfw = false;
 
     public function setFromPost(Post $post): void
     {
+        $this->editNote = '';
+
         $post->loadMissing('categories', 'tags', 'series');
 
         $this->title = $post->title ?? '';
@@ -108,7 +114,12 @@ class PostForm extends Form
 
         if ($isNew) {
             ActivityLog::record('post.create', 'post', $post->id, $post->preview(80), ['feed' => $post->feed->value]);
+        } elseif (($note = trim($this->editNote)) !== '') {
+            $post->edits()->create(['note' => $note, 'edited_at' => now()]);
+            ActivityLog::record('post.edit', 'post', $post->id, $post->preview(80), ['note' => $note]);
         }
+
+        $this->editNote = '';
 
         return $post->refresh();
     }
