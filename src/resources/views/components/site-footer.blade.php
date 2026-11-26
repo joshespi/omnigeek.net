@@ -12,6 +12,7 @@
                 <a class="site-link" href="{{ route('categories.index') }}" wire:navigate>Categories</a>
                 <a class="site-link" href="{{ route('series.index') }}" wire:navigate>Series</a>
                 <a class="site-link" href="{{ route('subscribe') }}" wire:navigate>Subscribe</a>
+                <a class="site-link" href="{{ config('services.discord.invite_url') }}">Join our Discord</a>
                 <a class="site-link" href="{{ route('feed') }}">RSS</a>
                 <a class="site-link" href="{{ route('removal-request') }}" wire:navigate>Request a removal</a>
             </nav>

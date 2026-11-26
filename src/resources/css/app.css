@@ -43,6 +43,10 @@
         @apply rounded-sm text-editorial-body transition-colors hover:text-editorial-accent;
     }
 
+    .site-primary-action {
+        @apply inline-flex min-h-11 items-center justify-center rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-700;
+    }
+
     .site-control {
         @apply inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg text-editorial-body transition-colors hover:bg-editorial-elevated hover:text-editorial-heading;
     }
@@ -61,6 +65,10 @@
 
     .editorial-eyebrow {
         @apply text-xs font-bold uppercase tracking-[0.14em] text-editorial-accent;
+    }
+
+    .category-overflow {
+        mask-image: linear-gradient(to right, black calc(100% - 1.5rem), transparent);
     }
 
     .category-chip {

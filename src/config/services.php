@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'discord' => [
+        'invite_url' => 'https://discord.gg/yKtXvkMCDY',
+        'widget_url' => 'https://discord.com/widget?id=1574626884187324557&theme=dark',
+    ],
+
 ];

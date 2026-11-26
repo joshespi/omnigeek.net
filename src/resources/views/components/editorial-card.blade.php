@@ -2,33 +2,39 @@
 
 @php
     $url = route('posts.show', $post);
-    $title = $post->preview(92) ?? $post->displayTitle();
-    $excerpt = $post->title ? Str::limit($post->plainBody(), $featured ? 235 : 150) : null;
+    $hasCover = $post->media->isNotEmpty() || $post->youtube_id;
+    $body = $post->plainBody();
+    $titleLimit = 92;
+    $excerptLimit = $featured ? 235 : 150;
+    if (! $hasCover && ! $post->title && mb_strwidth($body) > $titleLimit) {
+        $sentences = preg_split('/(?<=[.!?])\s+/u', $body, 3);
+        $title = Str::limit($sentences[0], $titleLimit, '', preserveWords: true);
+        $continuation = $title === $sentences[0]
+            ? ($sentences[1] ?? '')
+            : ltrim(Str::substr($body, Str::length($title)));
+        $excerpt = Str::limit($continuation, $excerptLimit);
+    } else {
+        $title = $post->preview($titleLimit) ?? $post->displayTitle();
+        $excerpt = $post->title ? Str::limit($body, $excerptLimit) : null;
+    }
 @endphp
 
-<article {{ $attributes->class(['editorial-card', 'editorial-card--featured' => $featured]) }}>
+<article {{ $attributes->class(['editorial-card', 'editorial-card--featured' => $featured && $hasCover]) }}>
     @if ($post->media->isNotEmpty())
         @include('partials.post-gallery', ['items' => $post->media, 'post' => $post, 'cover' => true, 'priority' => $featured])
     @elseif ($post->youtube_id)
         @include('partials.post-youtube', ['post' => $post, 'cover' => true, 'priority' => $featured])
-    @else
-        <a href="{{ $url }}" wire:navigate tabindex="-1" aria-hidden="true"
-            class="editorial-cover flex items-center justify-center">
-            <svg aria-hidden="true" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5"
-                class="h-11 w-11 text-editorial-accent opacity-50">
-                <path d="M8 5h12l5 5v17H8zM20 5v5h5M12 15h9m-9 5h9" stroke-linecap="round" stroke-linejoin="round" />
-            </svg>
-        </a>
     @endif
 
-    <div @class(['flex min-w-0 flex-col gap-3 p-5', 'md:justify-center md:p-8 lg:p-10' => $featured])>
+    <div @class(['flex min-w-0 grow flex-col gap-3 p-5', 'md:justify-center md:p-8 lg:p-10' => $featured, 'max-w-3xl' => $featured && ! $hasCover])>
         @if ($featured)
             <p class="editorial-eyebrow text-editorial-muted">Featured</p>
         @endif
         <x-post-categories :post="$post" />
         <{{ $heading }} @class([
             'font-display font-bold leading-tight text-editorial-heading [overflow-wrap:anywhere]',
-            'text-xl' => ! $featured,
+            'text-xl' => ! $featured && $hasCover,
+            'text-2xl' => ! $featured && ! $hasCover,
             'text-2xl sm:text-3xl lg:text-4xl' => $featured,
         ])>
             <a href="{{ $url }}" wire:navigate class="transition-colors hover:text-editorial-accent">
@@ -37,7 +43,7 @@
             </a>
         </{{ $heading }}>
         @if ($excerpt)
-            <p class="line-clamp-3 text-sm leading-relaxed text-editorial-body [overflow-wrap:anywhere]">{{ $excerpt }}</p>
+            <p @class(['leading-relaxed text-editorial-body [overflow-wrap:anywhere]', 'line-clamp-3 text-sm' => $hasCover])>{{ $excerpt }}</p>
         @endif
         <x-post-byline :post="$post" :class="$featured ? '' : 'mt-auto'" />
 
